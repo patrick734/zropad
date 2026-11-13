@@ -1,0 +1,18 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+libs = ["lib", "node_modules"]
+solc_version = "0.8.26"
+optimizer = true
+optimizer_runs = 1000
+via_ir = true
+# No PUSH0 or newer opcodes: runs on any EVM chain, including Zero's EVM zone.
+evm_version = "paris"
+remappings = [
+  "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
+  "forge-std/=lib/forge-std/src/",
+]
+
+[fuzz]
+runs = 512

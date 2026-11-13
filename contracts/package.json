@@ -1,0 +1,8 @@
+{
+  "name": "zropad-contracts",
+  "private": true,
+  "description": "Zropad smart contracts (Foundry). npm install for OpenZeppelin, then forge build / forge test.",
+  "devDependencies": {
+    "@openzeppelin/contracts": "5.4.0"
+  }
+}
