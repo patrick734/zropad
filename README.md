@@ -41,3 +41,17 @@ Deploy (any EVM chain; Base Sepolia until Zero opens):
 ```bash
 OWNER=0x... TREASURY=0x... forge script script/Deploy.s.sol --rpc-url <rpc> --account <keystore> --broadcast
 ```
+
+## Site (`web/`)
+
+Next.js app plus an indexer that reads the chain into SQLite.
+
+```bash
+cd web
+npm install
+cp .env.example .env.local
+npm run build && npm start
+npm run indexer
+```
+
+Set the chain and contract addresses in `.env.local` (`NEXT_PUBLIC_*` values are built into the site, so rebuild after changing them). Run `npm start` and `npm run indexer` side by side, e.g. with pm2.
