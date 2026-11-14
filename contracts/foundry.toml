@@ -16,3 +16,6 @@ remappings = [
 
 [fuzz]
 runs = 512
+
+[lint]
+lint_on_build = false
