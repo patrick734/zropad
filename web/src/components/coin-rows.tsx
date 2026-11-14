@@ -82,7 +82,7 @@ export function ScreenerRow({ c, king }: { c: Coin; king?: boolean }) {
         <p><span className="text-muted-foreground">MC </span><span className="font-semibold">{nat(c.mcap, 3)}</span></p>
         <p><span className="text-muted-foreground">V </span>{nat(c.volume24h, 3)}</p>
         {(c.jackpot_pot ?? 0) > 0 && (c.jackpot_deadline ?? 0) > Date.now() / 1000 ? (
-          <p className="mt-1 inline-flex items-center gap-0.5 text-gold"><Timer className="size-3" /><Countdown to={c.jackpot_deadline} /></p>
+          <p className="mt-1 inline-flex items-center gap-0.5 text-gold"><Timer className="size-3" /><Countdown to={c.jackpot_deadline ?? 0} /></p>
         ) : null}
       </div>
     </Link>

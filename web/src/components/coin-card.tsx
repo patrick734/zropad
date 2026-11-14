@@ -29,7 +29,7 @@ export function CoinCard({ coin: c, king }: { coin: Coin; king?: boolean }) {
         <CurveProgress value={c.progress} graduated={!!c.graduated} className="mt-1.5 h-1.5" />
         {(c.jackpot_pot ?? 0) > 0 && (c.jackpot_deadline ?? 0) > Date.now() / 1000 ? (
           <p className="num mt-1.5 flex items-center gap-1 text-[11px] text-gold">
-            <Timer className="size-3" /> {natSym(c.jackpot_pot, 3)} · <Countdown to={c.jackpot_deadline} />
+            <Timer className="size-3" /> {natSym(c.jackpot_pot, 3)} · <Countdown to={c.jackpot_deadline ?? 0} />
           </p>
         ) : null}
       </div>
