@@ -206,7 +206,6 @@ export default function Create() {
             </div>
             <p className="text-xs text-muted-foreground">
               You take {(feeBps / 100).toFixed(2)}% of every buy and sell, paid in {NATIVE}, plus Zropad&apos;s 1%: {(total / 100).toFixed(2)}% in all. It&apos;s fixed for good and shown to traders before every trade.
-              {feeBps > 1000 && <span className="text-gold"> High fees put many traders off.</span>}
             </p>
           </div>
 

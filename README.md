@@ -4,7 +4,6 @@ The launchpad for Zero. Launch a coin in one transaction, trade it on a bonding 
 graduates into a pool with its liquidity locked for good. Creators set their own fee; everyone
 plays the countdown jackpot.
 
-> Community-built on Zero. Not affiliated with LayerZero Labs.
 
 ## How it works
 

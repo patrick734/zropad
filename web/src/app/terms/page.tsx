@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CHAIN_NAME, NATIVE } from "@/lib/config";
+import { CHAIN_NAME } from "@/lib/config";
 import { Contact, H, L, LegalPage, P } from "@/components/legal";
 
 export const metadata: Metadata = { title: "Terms of Use" };
@@ -19,14 +19,13 @@ export default function Terms() {
       <H>1. What {N} is</H>
       <P>
         {N} is a website that lets you use open smart contracts: launching coins, trading them on bonding curves and in their pools after graduation, staking
-        $ZRPD, and taking part in each coin&apos;s countdown jackpot. The contracts run on the blockchain on their own; the Site is one way to reach them.
-        {N} is community-built and is not affiliated with LayerZero Labs.
+        $ZRPD, Zropad&apos;s platform token, and taking part in each coin&apos;s countdown jackpot. The contracts run on the blockchain on their own; the Site is
+        one way to reach them.
       </P>
       <P>
-        {N} never holds your funds or your keys. Every transaction is signed by your wallet and sent to the blockchain. Once confirmed, a transaction can&apos;t
-        be reversed by us or anyone else.
+        {N} never holds your funds or your keys. Every transaction is signed by your wallet and sent to the blockchain.
       </P>
-      {TESTNET && <P>The Site currently runs on a test network ({CHAIN_NAME}). Test {NATIVE} and coins launched on a test network have no value.</P>}
+      {TESTNET && <P>The Site currently runs on a test network ({CHAIN_NAME}) ahead of its launch on Zero.</P>}
 
       <H>2. Who can use it</H>
       <L
@@ -45,7 +44,7 @@ export default function Terms() {
       <H>4. Coins and content made by users</H>
       <P>
         Anyone can launch a coin on {N}. Coins, names, tickers, images, descriptions and links are created by users, not by us. We don&apos;t issue, vet,
-        endorse or guarantee any of them. A coin listed on the Site is not a recommendation.
+        endorse or guarantee any of them.
       </P>
       <P>
         When you post anything, you confirm you have the right to post it and that it doesn&apos;t break the law or anyone&apos;s rights. You keep ownership of
@@ -85,8 +84,8 @@ export default function Terms() {
       <H>8. No advice</H>
       <P>
         Nothing on the Site is financial, investment, legal or tax advice. Prices, market caps, profits, points and other figures are calculated from on-chain
-        data and may be delayed or wrong. Points are a record of activity on the Site and are not a promise of any token or reward. Your trading decisions are
-        your own.
+        data and may be delayed or wrong. Points record your activity on the Site ahead of
+        $ZRPD, Zropad&apos;s platform token. Your trading decisions are your own.
       </P>
 
       <H>9. The Site is provided as it is</H>

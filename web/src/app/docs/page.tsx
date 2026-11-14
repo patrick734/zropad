@@ -32,7 +32,7 @@ const SECTIONS: [string, string[]][] = [
     "The first 50 different wallets to buy a coin after the sniper window are its early buyers, marked EARLY in the trades list.",
     "Early buyers earn double points on those buys, and 100 bonus points if the coin graduates. See the Points page for everything that earns points.",
   ]],
-  ["$ZRPD", ["Stake $ZRPD to earn 30% of Zropad's trading fee, paid in " + NATIVE + " on every trade. No lockup."]],
+  ["$ZRPD", ["$ZRPD is Zropad's platform token: 1,000,000,000 supply.", "Stake $ZRPD to earn 30% of Zropad's trading fee, paid in " + NATIVE + " on every trade. No lockup.", "Points from season one track your activity ahead of $ZRPD."]],
 ];
 
 export default function Docs() {
@@ -49,7 +49,6 @@ export default function Docs() {
           </ul>
         </section>
       ))}
-      <p className="pt-2 text-center text-xs text-muted-foreground">Community-built on Zero. Not affiliated with LayerZero Labs.</p>
     </div>
   );
 }

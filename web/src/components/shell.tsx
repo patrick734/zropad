@@ -103,7 +103,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
             </p>
           )}
-          {wide && <p className="px-2.5 text-[11px] leading-snug text-muted-foreground">Community-built on Zero. Not affiliated with LayerZero Labs.</p>}
           {wide && TESTNET && <p className="px-2.5 text-[11px] text-gold">{CHAIN_NAME} testnet</p>}
         </div>
       </aside>
