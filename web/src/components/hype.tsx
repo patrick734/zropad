@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { Crown, GraduationCap, Rocket, Timer } from "lucide-react";
 import { useFeed, type FeedItem } from "@/lib/api";
 import { WHALE } from "@/lib/config";
 import { compact, natSym, short } from "@/lib/format";
@@ -10,21 +11,28 @@ import { CoinImage } from "./coin-image";
 
 const key = (f: FeedItem) => `${f.kind}:${f.tx}:${f.coin}:${f.who ?? ""}:${f.time}`;
 
-function Line({ f }: { f: FeedItem }) {
-  const sym = <b>${f.symbol}</b>;
-  if (f.kind === "launch") return <>🚀 {short(f.who)} launched {sym}</>;
-  if (f.kind === "graduated") return <>🎓 {sym} graduated with {natSym(f.native, 3)}</>;
-  if (f.kind === "jackpot") return <>🎰 {short(f.who)} won the {sym} jackpot: {natSym(f.native, 3)}</>;
+/** One line about something that happened. */
+export function FeedLine({ f }: { f: FeedItem }) {
+  const sym = <span className="font-semibold text-foreground">${f.symbol}</span>;
+  if (f.kind === "launch") return <>{short(f.who)} launched {sym}</>;
+  if (f.kind === "graduated") return <>{sym} graduated with {natSym(f.native, 3)}</>;
+  if (f.kind === "jackpot") return <>{short(f.who)} won the {sym} jackpot: <span className="text-gold">{natSym(f.native, 3)}</span></>;
   return (
     <>
-      <span className={f.is_buy ? "text-buy" : "text-sell"}>{f.is_buy ? "bought" : "sold"}</span> {compact(f.tokens ?? 0)} {sym} for {natSym(f.native, 3)}
-      {f.early ? <span className="ml-1 text-lime">⚡early</span> : null}
+      {short(f.who)} <span className={f.is_buy ? "text-up" : "text-down"}>{f.is_buy ? "bought" : "sold"}</span> {compact(f.tokens ?? 0)} {sym} for {natSym(f.native, 3)}
     </>
   );
 }
 
-/** The live layer: a ticker of everything happening, plus pop-ups for whales, launches and jackpot wins. */
-export function HypeLayer() {
+const TITLE: Record<string, [string, typeof Rocket, string]> = {
+  trade: ["Whale buy", Crown, "text-gold"],
+  launch: ["New launch", Rocket, "text-primary"],
+  jackpot: ["Jackpot won", Timer, "text-gold"],
+  graduated: ["Graduated", GraduationCap, "text-primary"],
+};
+
+/** Pop-ups for whales, launches, graduations and jackpot wins, with sounds if they're on. */
+export function Toasts() {
   const { data } = useFeed();
   const seen = useRef<Set<string> | null>(null);
   const [toasts, setToasts] = useState<(FeedItem & { id: string })[]>([]);
@@ -43,44 +51,28 @@ export function HypeLayer() {
       if (f.kind === "trade") (whale ? sounds.whale : f.is_buy ? sounds.buy : sounds.sell)();
       if (f.kind === "launch") sounds.launch();
       if (f.kind === "jackpot") sounds.win();
-      if (whale || f.kind === "launch" || f.kind === "jackpot" || f.kind === "graduated") {
+      if (whale || f.kind !== "trade") {
         const id = key(f);
-        setToasts((t) => [...t.slice(-3), { ...f, id }]);
+        setToasts((t) => [...t.slice(-2), { ...f, id }]);
         setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 6000);
       }
     }
   }, [data]);
 
-  const items = data?.feed ?? [];
   return (
-    <>
-      <div className="overflow-hidden border-b border-line bg-panel/60 py-2 text-sm">
-        {items.length ? (
-          <div className="ticker flex w-max gap-8 whitespace-nowrap">
-            {[...items, ...items].map((f, i) => (
-              <Link key={i} href={`/coin/${f.coin}`} className="flex items-center gap-2 text-muted hover:text-white">
-                <CoinImage src={f.image} symbol={f.symbol} size={20} />
-                <Line f={f} />
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="px-4 text-muted">The pad is quiet. Launch the first coin and it shows up here.</div>
-        )}
-      </div>
-      <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-80 flex-col gap-2">
-        {toasts.map((t) => (
-          <Link key={t.id} href={`/coin/${t.coin}`} className="panel pop-in pointer-events-auto flex items-center gap-3 border-lime/40 p-3 text-sm">
-            <CoinImage src={t.image} symbol={t.symbol} size={36} />
-            <div>
-              <div className="font-bold">{t.kind === "trade" ? "🐋 Whale alert" : t.kind === "launch" ? "🚀 New launch" : t.kind === "jackpot" ? "🎰 Jackpot won" : "🎓 Graduated"}</div>
-              <div className="text-muted">
-                <Line f={t} />
-              </div>
+    <div className="pointer-events-none fixed bottom-20 right-3 z-50 flex w-80 max-w-[calc(100vw-1.5rem)] flex-col gap-2 lg:bottom-4">
+      {toasts.map((t) => {
+        const [title, Icon, color] = TITLE[t.kind];
+        return (
+          <Link key={t.id} href={`/coin/${t.coin}`} className="pop-in pointer-events-auto flex items-center gap-3 rounded-xl border border-border bg-popover p-3 text-xs shadow-2xl">
+            <CoinImage src={t.image} symbol={t.symbol} address={t.coin} className="size-9" />
+            <div className="min-w-0">
+              <p className={`flex items-center gap-1 text-[13px] font-semibold ${color}`}><Icon className="size-3.5" /> {title}</p>
+              <p className="truncate text-muted-foreground"><FeedLine f={t} /></p>
             </div>
           </Link>
-        ))}
-      </div>
-    </>
+        );
+      })}
+    </div>
   );
 }

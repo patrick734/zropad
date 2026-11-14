@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { formatEther } from "viem";
 import { useAccount, usePublicClient, useReadContract, useWriteContract } from "wagmi";
+import { Gift, Loader2, Timer } from "lucide-react";
 import { useWallet } from "@/lib/api";
 import { hubAbi } from "@/lib/abi";
 import { NATIVE, ZROPAD, chain } from "@/lib/config";
@@ -11,6 +12,8 @@ import { ago, compact, nat, natSym } from "@/lib/format";
 import { ConnectButton } from "@/components/connect";
 import { CoinCard } from "@/components/coin-card";
 import { CoinImage } from "@/components/coin-image";
+import { Empty } from "@/components/column";
+import { Button } from "@/components/ui/button";
 
 export default function Me() {
   const { address, isConnected, chainId } = useAccount();
@@ -23,10 +26,11 @@ export default function Me() {
 
   if (!isConnected)
     return (
-      <div className="panel mx-auto max-w-md space-y-4 p-8 text-center">
-        <h1 className="text-2xl font-black">My coins &amp; rewards</h1>
-        <p className="text-muted">Connect to see your coins, creator fees and jackpot wins.</p>
-        <ConnectButton />
+      <div className="panel mx-auto mt-10 max-w-sm space-y-4 p-6 text-center">
+        <Gift className="mx-auto size-8 text-primary" />
+        <h1 className="text-lg font-semibold">My coins & rewards</h1>
+        <p className="text-xs text-muted-foreground">Connect to see your coins, creator fees and jackpot wins.</p>
+        <ConnectButton big />
       </div>
     );
 
@@ -48,67 +52,58 @@ export default function Me() {
   const value = data?.holdings.reduce((s, h) => s + h.value, 0) ?? 0;
 
   return (
-    <div className="space-y-6">
-      <div className="panel flex flex-wrap items-center justify-between gap-4 p-6">
+    <div className="mx-auto max-w-5xl space-y-4">
+      <div className="panel flex flex-wrap items-center justify-between gap-4 p-4">
         <div>
-          <div className="text-xs font-bold tracking-widest text-muted">READY TO CLAIM</div>
-          <div className="num text-4xl font-black text-lime">{nat(Number(formatEther(owed ?? 0n)))} {NATIVE}</div>
-          <div className="text-sm text-muted">Creator fees and jackpot wins, in one claim.</div>
+          <p className="label">Ready to claim</p>
+          <p className="num text-3xl font-semibold text-primary">{nat(Number(formatEther(owed ?? 0n)))} {NATIVE}</p>
+          <p className="text-xs text-muted-foreground">Creator fees and jackpot wins, in one claim.</p>
         </div>
-        <div className="space-y-2 text-right">
-          <button className="btn btn-lime px-8 py-3 text-lg" disabled={busy || !owed || chainId !== chain.id} onClick={claim}>
-            {busy ? "Claiming…" : "Claim"}
-          </button>
-          {error && <div className="text-sm text-sell">{error}</div>}
+        <div className="space-y-1 text-right">
+          <Button size="lg" className="px-8" disabled={busy || !owed || chainId !== chain.id} onClick={claim}>
+            {busy && <Loader2 className="animate-spin" />} Claim
+          </Button>
+          {error && <p className="text-xs text-down">{error}</p>}
         </div>
       </div>
 
-      <section>
-        <h2 className="mb-3 text-xl font-black">Holdings <span className="num text-base font-normal text-muted">≈ {natSym(value, 3)}</span></h2>
-        <div className="panel divide-y divide-line">
+      <section className="space-y-2">
+        <h2 className="text-[13px] font-semibold">Holdings <span className="num font-normal text-muted-foreground">≈ {natSym(value, 3)}</span></h2>
+        <div className="panel overflow-hidden">
           {(data?.holdings ?? []).map((h) => (
-            <Link key={h.coin} href={`/coin/${h.coin}`} className="flex items-center gap-3 p-3 hover:bg-white/[0.03]">
-              <CoinImage src={h.image} symbol={h.symbol} size={36} />
-              <div className="flex-1">
-                <div className="font-semibold">{h.name}</div>
-                <div className="text-xs text-muted">${h.symbol}</div>
+            <Link key={h.coin} href={`/coin/${h.coin}`} className="flex items-center gap-3 border-b border-border/60 px-3 py-2.5 last:border-0 hover:bg-secondary/40">
+              <CoinImage src={h.image} symbol={h.symbol} address={h.coin} className="size-9" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-semibold">{h.name}</p>
+                <p className="text-[11px] text-muted-foreground">${h.symbol}</p>
               </div>
               <div className="text-right">
-                <div className="num">{compact(h.amount)}</div>
-                <div className="num text-xs text-muted">{natSym(h.value, 3)}</div>
+                <p className="num text-[13px]">{compact(h.amount)}</p>
+                <p className="num text-[11px] text-muted-foreground">{natSym(h.value, 3)}</p>
               </div>
             </Link>
           ))}
-          {data && !data.holdings.length && <div className="p-6 text-center text-muted">No coins yet.</div>}
+          {data && !data.holdings.length && <Empty>No coins yet.</Empty>}
         </div>
       </section>
 
-      <section>
-        <h2 className="mb-3 text-xl font-black">Coins you launched</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(data?.created ?? []).map((c) => (
-            <CoinCard key={c.address} coin={c} />
-          ))}
-        </div>
-        {data && !data.created.length && (
-          <div className="panel p-6 text-center text-muted">
-            None yet. <Link href="/launch" className="text-lime">Launch one →</Link>
-          </div>
+      <section className="space-y-2">
+        <h2 className="text-[13px] font-semibold">Coins you launched</h2>
+        {data?.created.length ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{data.created.map((c) => <CoinCard key={c.address} coin={c} />)}</div>
+        ) : (
+          <div className="panel"><Empty>None yet. <Link href="/create" className="text-primary">Launch one.</Link></Empty></div>
         )}
       </section>
 
       {!!data?.wins.length && (
-        <section>
-          <h2 className="mb-3 text-xl font-black">Jackpots won 🎰</h2>
-          <div className="panel divide-y divide-line">
+        <section className="space-y-2">
+          <h2 className="flex items-center gap-1.5 text-[13px] font-semibold"><Timer className="size-4 text-gold" /> Jackpots won</h2>
+          <div className="panel overflow-hidden">
             {data.wins.map((w) => (
-              <Link key={`${w.coin}-${w.round}`} href={`/coin/${w.coin}`} className="flex justify-between p-3 hover:bg-white/[0.03]">
-                <span>
-                  ${w.symbol} · round {w.round}
-                </span>
-                <span className="num text-gold">
-                  {natSym(w.amount, 4)} <span className="text-muted">· {ago(w.time)} ago</span>
-                </span>
+              <Link key={`${w.coin}-${w.round}`} href={`/coin/${w.coin}`} className="flex justify-between border-b border-border/60 px-3 py-2.5 text-[13px] last:border-0 hover:bg-secondary/40">
+                <span>${w.symbol} · round {w.round}</span>
+                <span className="num text-gold">{natSym(w.amount, 4)} <span className="text-muted-foreground">· {ago(w.time)} ago</span></span>
               </Link>
             ))}
           </div>

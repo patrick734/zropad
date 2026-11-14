@@ -1,116 +1,87 @@
 @import "tailwindcss";
 
-@theme {
-  --color-ink: #050507;
-  --color-panel: #0e0f14;
-  --color-line: #1f2230;
-  --color-muted: #8a8fa3;
-  --color-lime: #c6ff3d;
-  --color-violet: #8b5cff;
-  --color-buy: #2ee59d;
-  --color-sell: #ff4d6d;
-  --color-gold: #ffcf3d;
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+/*
+ * Flat, dense and dark: black panels, hairline borders, light green for actions and gains,
+ * coral for losses.
+ */
+:root {
+  --radius: 0.625rem;
+  --background: #050506;
+  --foreground: #f4f5f6;
+  --card: #0e0f11;
+  --popover: #141518;
+  --primary: #7ef29d;
+  --primary-foreground: #04170b;
+  --secondary: #191a1d;
+  --muted-foreground: #8b9098;
+  --accent: #202226;
+  --destructive: #f07a63;
+  --border: #1e2023;
+  --input: #282a2f;
+  --ring: #7ef29d;
+  --up: #7ef29d;
+  --down: #f07a63;
+  --gold: #facc15;
+  --ink: #04170b;
 }
 
-html,
-body {
-  background: var(--color-ink);
-  color: #f2f3f7;
-  font-family: var(--font-display);
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-popover: var(--popover);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-gold: var(--gold);
+  --color-ink: var(--ink);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-body {
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(139, 92, 255, 0.18), transparent),
-    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(198, 255, 61, 0.07), transparent);
-  min-height: 100vh;
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html, body { overflow-x: clip; }
+  body { @apply bg-background text-foreground antialiased; font-feature-settings: "tnum" 1; }
+  ::selection { background: var(--primary); color: var(--ink); }
+  input, textarea { @apply bg-transparent; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #26282c; border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
 }
 
-/* Component classes sit in a layer so Tailwind utilities (hidden, px-8, ...) can override them. */
 @layer components {
-  .panel {
-    background: var(--color-panel);
-    border: 1px solid var(--color-line);
-    border-radius: 16px;
-  }
-
-  .num {
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border-radius: 12px;
-    padding: 10px 16px;
-    font-weight: 700;
-    transition: transform 0.08s, opacity 0.15s;
-  }
-  .btn:active {
-    transform: scale(0.97);
-  }
-  .btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-  .btn-lime {
-    background: var(--color-lime);
-    color: #0a0b0f;
-  }
-  .btn-ghost {
-    border: 1px solid var(--color-line);
-    color: #f2f3f7;
-  }
-  .input {
-    width: 100%;
-    background: #08090d;
-    border: 1px solid var(--color-line);
-    border-radius: 12px;
-    padding: 10px 12px;
-    outline: none;
-  }
-  .input:focus {
-    border-color: var(--color-lime);
-  }
+  .label { @apply text-[11px] font-medium uppercase tracking-wider text-muted-foreground; }
+  .panel { @apply rounded-xl border border-border bg-card; }
+  .field { @apply w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-primary/70; }
+  .chip { @apply inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium; }
+  .tab { @apply whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:text-foreground; }
+  .tab-on { @apply bg-secondary text-foreground; }
+  .tab-green { @apply bg-primary text-primary-foreground hover:text-primary-foreground; }
+  .num { font-variant-numeric: tabular-nums; }
 }
 
-@keyframes flash-buy {
-  from { background: rgba(46, 229, 157, 0.35); }
-  to { background: transparent; }
-}
-@keyframes flash-sell {
-  from { background: rgba(255, 77, 109, 0.35); }
-  to { background: transparent; }
-}
-.flash-buy { animation: flash-buy 1.2s ease-out; }
-.flash-sell { animation: flash-sell 1.2s ease-out; }
-
-@keyframes ticker {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-.ticker {
-  animation: ticker 60s linear infinite;
-}
-.ticker:hover {
-  animation-play-state: paused;
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(198, 255, 61, 0.0); }
-  50% { box-shadow: 0 0 40px 4px rgba(198, 255, 61, 0.25); }
-}
-.glow {
-  animation: pulse-glow 2.4s ease-in-out infinite;
-}
-
-@keyframes pop-in {
-  from { transform: translateY(20px) scale(0.95); opacity: 0; }
-  to { transform: none; opacity: 1; }
-}
-.pop-in { animation: pop-in 0.3s ease-out; }
+@keyframes tape { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.tape { animation: tape 90s linear infinite; }
+.tape:hover { animation-play-state: paused; }
+@keyframes flash { 0% { background-color: color-mix(in srgb, var(--up) 22%, transparent); } 100% { background-color: transparent; } }
+.flash { animation: flash 0.9s ease-out; }
+@keyframes flash-down { 0% { background-color: color-mix(in srgb, var(--down) 22%, transparent); } 100% { background-color: transparent; } }
+.flash-down { animation: flash-down 0.9s ease-out; }
+@keyframes pop-in { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.pop-in { animation: pop-in 0.16s ease-out; transform-origin: bottom center; }
+@keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 0%, transparent); } 50% { box-shadow: 0 0 22px 0 color-mix(in srgb, var(--gold) 22%, transparent); } }
+.glow { animation: glow 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .tape, .flash, .flash-down, .pop-in, .glow { animation: none; } }

@@ -1,200 +1,252 @@
 "use client";
 
-import Link from "next/link";
-import { use, useEffect, useState } from "react";
+import { use, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import type { Address } from "viem";
-import { useAccount } from "wagmi";
-import { useCoin } from "@/lib/api";
-import { GRADUATION, NATIVE, explorerAddress, explorerTx } from "@/lib/config";
+import { formatEther, type Address } from "viem";
+import { useAccount, useReadContract } from "wagmi";
+import { Check, Copy, Crown, ExternalLink, Globe, GraduationCap, Rocket, Send } from "lucide-react";
+import { useCoin, useFeed } from "@/lib/api";
+import { hubAbi } from "@/lib/abi";
+import { GRADUATION, NATIVE, ZROPAD, chain, explorerAddress, explorerTx } from "@/lib/config";
 import { ago, compact, nat, natSym, pct, short } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { CoinImage } from "@/components/coin-image";
-import { Progress } from "@/components/coin-card";
+import { Avatar } from "@/components/avatar";
+import { Change } from "@/components/change";
 import { Chart } from "@/components/chart";
+import { CurveProgress } from "@/components/progress";
 import { TradePanel } from "@/components/trade-panel";
 import { JackpotCard } from "@/components/jackpot-card";
 
-const INTERVALS: [string, number][] = [["1m", 60], ["5m", 300], ["15m", 900], ["1h", 3600]];
+const INTERVALS: [string, number][] = [["1m", 60], ["5m", 300], ["15m", 900], ["1h", 3600], ["4h", 14400], ["1d", 86400]];
 
 export default function CoinPage({ params }: { params: Promise<{ address: string }> }) {
   const { address } = use(params);
-  const launched = useSearchParams().get("launched");
+  const launched = !!useSearchParams().get("launched");
   const [interval, setInterval_] = useState(60);
   const [tab, setTab] = useState<"trades" | "holders">("trades");
-  const { data, error, isLoading } = useCoin(address.toLowerCase(), interval);
+  const { data, isLoading } = useCoin(address.toLowerCase(), interval);
+  const kingAddr = useFeed().data?.king?.address;
   const { address: me } = useAccount();
   const [copied, setCopied] = useState(false);
-  const [showLaunched, setShowLaunched] = useState(!!launched);
-  useEffect(() => {
-    if (!showLaunched) return;
-    const t = setTimeout(() => setShowLaunched(false), 8000);
-    return () => clearTimeout(t);
-  }, [showLaunched]);
+  const { data: config } = useReadContract({ address: ZROPAD, abi: hubAbi, functionName: "config", chainId: chain.id, query: { enabled: !!ZROPAD, staleTime: 60_000 } });
+  const minBuy = config ? nat(Number(formatEther(config[10] as bigint))) : "0.005";
 
-  if (isLoading || (!data && !error)) return <div className="panel p-10 text-center text-muted">{launched ? "Your coin is live. Loading it…" : "Loading…"}</div>;
-  if (!data) return <div className="panel p-10 text-center text-muted">{launched ? "Your coin is live. It shows up here in a few seconds…" : "Coin not found."}</div>;
+  if (!data)
+    return (
+      <div className="py-24 text-center text-muted-foreground">
+        {isLoading ? "Loading…" : launched ? "Fresh off the press. Give it a few seconds." : "Coin not found."}
+      </div>
+    );
 
   const { coin, trades, holders, candles } = data;
   const mine = me?.toLowerCase();
-  const links = [["Website", coin.website], ["X", coin.twitter], ["Telegram", coin.telegram]].filter(([, v]) => v) as [string, string][];
+  const king = coin.address === kingAddr;
+  const copy = async () => {
+    await navigator.clipboard.writeText(coin.address);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  };
 
   return (
-    <div className="space-y-5">
-      {showLaunched && (
-        <div className="pop-in panel border-lime/50 p-4 text-center font-bold text-lime">🚀 ${coin.symbol} is live. Share it: the 2-second sniper tax is already over.</div>
-      )}
-
-      <div className="flex flex-wrap items-center gap-4">
-        <CoinImage src={coin.image} symbol={coin.symbol} size={72} />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-2">
-            <h1 className="break-words text-2xl font-black sm:text-3xl">{coin.name}</h1>
-            <span className="text-xl text-muted">${coin.symbol}</span>
-            {coin.graduated ? <span className="rounded-md bg-violet/20 px-2 py-0.5 text-sm font-bold text-violet">Graduated</span> : null}
-          </div>
-          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
-            <span>
-              by{" "}
-              <a className="hover:text-white" href={explorerAddress(coin.creator)} target="_blank" rel="noreferrer">
-                {coin.creator === mine ? "you" : short(coin.creator)}
-              </a>
-            </span>
-            <span>{ago(coin.created_at)} ago</span>
-            <button
-              className="hover:text-white"
-              onClick={() => {
-                navigator.clipboard.writeText(coin.address);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
-              }}
-            >
-              {copied ? "Copied ✓" : `CA ${short(coin.address)} ⧉`}
-            </button>
-            {links.map(([k, v]) => (
-              <a key={k} href={v} target="_blank" rel="noreferrer nofollow" className="text-lime hover:underline">
-                {k} ↗
-              </a>
-            ))}
-          </div>
+    <div className="mx-auto max-w-[1600px] space-y-3">
+      {launched && (
+        <div className="pop-in flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-xs text-primary">
+          <Rocket className="size-4" /> ${coin.symbol} is live. The 2-second sniper window is already over: share it.
         </div>
-        <div className="grid w-full grid-cols-2 gap-x-6 gap-y-2 sm:w-auto sm:grid-cols-4 sm:text-right">
-          <Stat k="Market cap" v={natSym(coin.mcap, 2)} accent />
-          <Stat k="24h" v={coin.change24h == null ? "—" : `${coin.change24h >= 0 ? "+" : ""}${coin.change24h.toFixed(1)}%`} cls={coin.change24h == null ? "" : coin.change24h >= 0 ? "text-buy" : "text-sell"} />
-          <Stat k="Volume" v={natSym(coin.volume, 2)} />
-          <Stat k="Creator fee" v={pct(coin.creator_fee_bps)} cls={coin.creator_fee_bps >= 1000 ? "text-gold" : ""} />
+      )}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <CoinImage src={coin.image} symbol={coin.symbol} address={coin.address} className="size-12 rounded-lg" />
+        <div className="min-w-0">
+          <h1 className="flex items-center gap-1.5 truncate text-lg font-semibold">
+            {coin.name} <span className="font-normal text-muted-foreground">{coin.symbol}</span>
+            {coin.graduated ? <GraduationCap className="size-4 text-primary" /> : null}
+            {king && <Crown className="size-3.5 text-gold" />}
+          </h1>
+          <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+            <a href={explorerAddress(coin.creator)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-foreground hover:underline">
+              <Avatar seed={coin.creator} className="size-4" /> {coin.creator === mine ? "you" : short(coin.creator)}
+            </a>
+            <span>· {ago(coin.created_at)} ago</span>
+            <button onClick={() => void copy()} className="inline-flex items-center gap-1 font-mono hover:text-foreground">
+              {short(coin.address)} {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+            </button>
+            {coin.twitter && <SocialLink href={coin.twitter} label="X"><XMark /></SocialLink>}
+            {coin.telegram && <SocialLink href={coin.telegram} label="Telegram"><Send className="size-3" /></SocialLink>}
+            {coin.website && <SocialLink href={coin.website} label="Website"><Globe className="size-3" /></SocialLink>}
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-        <div className="min-w-0 space-y-5">
-          <div className="panel p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm text-muted">Market cap ({NATIVE})</span>
-              <div className="flex gap-1">
-                {INTERVALS.map(([k, v]) => (
-                  <button key={k} onClick={() => setInterval_(v)} className={`rounded-md px-2 py-1 text-xs ${interval === v ? "bg-white text-ink" : "bg-white/5 text-muted"}`}>
-                    {k}
-                  </button>
-                ))}
-              </div>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0 space-y-3">
+          <div className="panel flex flex-wrap items-end gap-x-8 gap-y-3 p-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Market cap</p>
+              <p className="num text-3xl font-semibold">{natSym(coin.mcap, 3)}</p>
+              <Change value={coin.change24h} className="text-xs" /> <span className="text-xs text-muted-foreground">24h</span>
             </div>
-            {candles.length ? <Chart candles={candles} /> : <div className="grid h-80 place-items-center text-muted">No trades yet. Be first.</div>}
+            <div className="min-w-48 flex-1">
+              <div className="flex justify-between text-[11px] text-muted-foreground">
+                <span>{coin.graduated ? "Graduated" : "Bonding curve"}</span>
+                <span className="num">{coin.graduated ? "locked pool" : `${nat(coin.raised, 3)} / ${GRADUATION} ${NATIVE}`}</span>
+              </div>
+              <CurveProgress value={coin.progress} graduated={!!coin.graduated} className="mt-1" />
+            </div>
+            <Stat label="24h vol" value={natSym(coin.volume24h, 3)} />
+            <Stat label="Holders" value={String(coin.holders)} />
+            <Stat label="Creator fee" value={pct(coin.creator_fee_bps)} gold={coin.creator_fee_bps >= 1000} />
           </div>
 
-          <div className="panel p-4">
-            <div className="mb-3 flex gap-1">
-              {(["trades", "holders"] as const).map((t) => (
-                <button key={t} onClick={() => setTab(t)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold capitalize ${tab === t ? "bg-white text-ink" : "bg-white/5 text-muted"}`}>
-                  {t} {t === "holders" ? `(${coin.holders})` : ""}
+          <div className="panel overflow-hidden">
+            <div className="flex items-center gap-1 border-b border-border px-2 py-1.5">
+              {INTERVALS.map(([k, v]) => (
+                <button key={k} onClick={() => setInterval_(v)} className={cn("tab", interval === v && "tab-on")}>
+                  {k}
                 </button>
               ))}
+              <span className="ml-auto pr-1 text-xs text-muted-foreground">market cap ({NATIVE})</span>
             </div>
-            {tab === "trades" ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="text-left text-xs text-muted">
-                    <tr>
-                      <th className="py-1.5">Trader</th>
-                      <th>Side</th>
-                      <th className="text-right">{NATIVE}</th>
-                      <th className="text-right">${coin.symbol}</th>
-                      <th className="text-right">When</th>
+            {candles.length ? <Chart candles={candles} /> : <div className="grid h-[380px] place-items-center text-xs text-muted-foreground lg:h-[440px]">No trades yet. Be the first.</div>}
+          </div>
+
+          <div className="flex gap-1">
+            {(["trades", "holders"] as const).map((t) => (
+              <button key={t} onClick={() => setTab(t)} className={cn("tab capitalize", tab === t && "tab-on")}>
+                {t === "holders" ? `Holders (${coin.holders})` : "Trades"}
+              </button>
+            ))}
+          </div>
+          {tab === "trades" ? (
+            trades.length ? (
+              <div className="panel overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead className="text-left text-muted-foreground">
+                    <tr className="border-b">
+                      <th className="px-3 py-2 font-normal">Account</th>
+                      <th className="px-3 py-2 font-normal">Type</th>
+                      <th className="px-3 py-2 font-normal">{NATIVE}</th>
+                      <th className="px-3 py-2 font-normal">${coin.symbol}</th>
+                      <th className="px-3 py-2 font-normal">Date</th>
+                      <th className="px-3 py-2 font-normal">Tx</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {trades.map((t) => (
-                      <tr key={t.tx + t.time + t.trader + t.native} className="border-t border-line">
-                        <td className="py-1.5">
-                          <a href={explorerAddress(t.trader)} target="_blank" rel="noreferrer" className={t.trader === mine ? "text-lime" : "hover:text-white"}>
-                            {t.trader === mine ? "you" : short(t.trader)}
-                          </a>
-                          {t.early ? <span className="ml-1.5 rounded bg-lime/15 px-1 text-[10px] font-bold text-lime">EARLY</span> : null}
-                          {t.trader === coin.creator ? <span className="ml-1.5 rounded bg-violet/20 px-1 text-[10px] font-bold text-violet">DEV</span> : null}
-                          {t.sniper_tax > 0 ? <span className="ml-1.5 rounded bg-sell/15 px-1 text-[10px] font-bold text-sell">SNIPER TAXED</span> : null}
+                    {trades.map((t, i) => (
+                      <tr key={`${t.tx}-${i}`} className="border-b last:border-0">
+                        <td className="px-3 py-2">
+                          <span className="inline-flex items-center gap-1.5">
+                            <Avatar seed={t.trader} className="size-4" />
+                            <span className={t.trader === mine ? "font-semibold text-up" : "font-mono"}>{t.trader === mine ? "you" : short(t.trader)}</span>
+                            {t.trader === coin.creator && <span className="chip bg-primary/15 text-primary">dev</span>}
+                            {t.early ? <span className="chip bg-up/10 text-up">early</span> : null}
+                            {t.sniper_tax > 0 ? <span className="chip bg-down/10 text-down">sniper taxed</span> : null}
+                          </span>
                         </td>
-                        <td className={t.is_buy ? "text-buy" : "text-sell"}>{t.is_buy ? "Buy" : "Sell"}</td>
-                        <td className="num text-right">{nat(t.native)}</td>
-                        <td className="num text-right">{compact(t.tokens)}</td>
-                        <td className="text-right text-muted">
-                          <a href={explorerTx(t.tx)} target="_blank" rel="noreferrer" className="hover:text-white">
-                            {ago(t.time)}
-                          </a>
+                        <td className={cn("px-3 py-2", t.is_buy ? "text-up" : "text-down")}>{t.is_buy ? "buy" : "sell"}</td>
+                        <td className="num px-3 py-2">{nat(t.native, 4)}</td>
+                        <td className="num px-3 py-2">{compact(t.tokens)}</td>
+                        <td className="px-3 py-2 text-muted-foreground">{ago(t.time)} ago</td>
+                        <td className="px-3 py-2">
+                          <a href={explorerTx(t.tx)} target="_blank" rel="noreferrer" className="font-mono text-muted-foreground hover:text-foreground">{short(t.tx)}</a>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                {!trades.length && <div className="py-6 text-center text-muted">No trades yet.</div>}
               </div>
             ) : (
-              <ol className="space-y-1.5 text-sm">
+              <p className="py-6 text-center text-sm text-muted-foreground">No trades yet.</p>
+            )
+          ) : (
+            <div className="panel p-4">
+              <ol className="space-y-1 text-xs">
                 {holders.map((h, i) => (
-                  <li key={h.holder} className="flex justify-between">
-                    <span>
-                      <span className="mr-2 text-muted">{i + 1}.</span>
-                      {h.isMarket ? (coin.graduated ? "🔒 Pool (locked)" : "📈 Bonding curve") : h.holder === mine ? <span className="text-lime">you</span> : short(h.holder)}
-                      {h.holder === coin.creator && <span className="ml-1.5 rounded bg-violet/20 px-1 text-[10px] font-bold text-violet">DEV</span>}
-                    </span>
-                    <span className="num">{(h.share * 100).toFixed(2)}%</span>
+                  <li key={h.holder} className="flex items-center gap-2">
+                    <span className="w-5 text-muted-foreground">{i + 1}.</span>
+                    {h.isMarket ? <span>{coin.graduated ? "Zropad pool (locked)" : "Bonding curve"}</span> : <span className={h.holder === mine ? "font-semibold text-up" : "font-mono"}>{h.holder === mine ? "you" : short(h.holder)}</span>}
+                    {h.holder === coin.creator && <span className="chip bg-primary/15 text-primary">dev</span>}
+                    <span className="num ml-auto">{(h.share * 100).toFixed(2)}%</span>
                   </li>
                 ))}
               </ol>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
-        <aside className="space-y-5">
-          <TradePanel coin={coin.address as Address} market={coin.market as Address} symbol={coin.symbol} creatorFeeBps={coin.creator_fee_bps} />
+        <aside className="min-w-0 space-y-3">
+          <TradePanel coin={coin.address as Address} market={coin.market as Address} symbol={coin.symbol} creatorFeeBps={coin.creator_fee_bps} graduated={!!coin.graduated} />
 
           {coin.jackpot_deadline != null && (
-            <JackpotCard coin={coin.address as Address} pot={coin.jackpot_pot ?? 0} deadline={coin.jackpot_deadline} round={coin.jackpot_round ?? 1} lastBuyer={coin.jackpot_last_buyer} />
+            <JackpotCard coin={coin.address as Address} pot={coin.jackpot_pot ?? 0} deadline={coin.jackpot_deadline} round={coin.jackpot_round ?? 1} lastBuyer={coin.jackpot_last_buyer} minBuy={minBuy} />
           )}
 
-          <div className="panel space-y-2 p-5">
-            <div className="flex justify-between text-sm">
-              <span className="font-semibold">{coin.graduated ? "Graduated 🎓" : "Bonding curve"}</span>
-              <span className="num text-lime">{Math.floor(coin.progress * 100)}%</span>
-            </div>
-            <Progress value={coin.progress} graduated={!!coin.graduated} />
-            <p className="text-xs text-muted">
-              {coin.graduated
-                ? `Trading in its Zropad pool. The liquidity is locked for good: nobody can pull it.`
-                : `${nat(coin.raised)} of ${GRADUATION} ${NATIVE} raised. At ${GRADUATION} ${NATIVE} the coin moves into a pool with its liquidity locked for good.`}
-            </p>
+          <div className="panel space-y-2 p-4 text-sm">
+            {coin.graduated ? (
+              <div className="space-y-1">
+                <p className="flex items-center gap-1.5 font-semibold text-gold"><GraduationCap className="size-4" /> Graduated</p>
+                <p className="text-xs text-muted-foreground">Trading in its Zropad pool now, right here. The pool&apos;s liquidity is locked for good: nobody can pull it.</p>
+                <a href={explorerAddress(coin.market)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                  View pool <ExternalLink className="size-3" />
+                </a>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold">Bonding curve progress</span>
+                  <span className="num font-semibold">{(coin.progress * 100).toFixed(1)}%</span>
+                </div>
+                <CurveProgress value={coin.progress} />
+                <p className="text-xs text-muted-foreground">
+                  Graduates at {GRADUATION} {NATIVE} raised. {nat(coin.raised, 4)} {NATIVE} in the curve so far. Then the coin moves into a pool with its liquidity locked for good.
+                </p>
+                {king && <p className="flex items-center gap-1 text-xs font-medium text-gold"><Crown className="size-3.5" /> King of the hill</p>}
+              </>
+            )}
           </div>
 
-          {coin.description && <div className="panel whitespace-pre-wrap break-words p-5 text-sm text-muted">{coin.description}</div>}
+          {coin.description && <div className="panel whitespace-pre-wrap break-words p-4 text-xs text-muted-foreground">{coin.description}</div>}
+
+          <div className="panel p-4 text-sm">
+            <p className="mb-2 font-semibold">Top holders <span className="font-normal text-muted-foreground">({coin.holders})</span></p>
+            <ol className="space-y-1 text-xs">
+              {holders.slice(0, 12).map((h, i) => (
+                <li key={h.holder} className="flex items-center gap-2">
+                  <span className="w-5 text-muted-foreground">{i + 1}.</span>
+                  {h.isMarket ? <span>{coin.graduated ? "Zropad pool (locked)" : "Bonding curve"}</span> : <span className="font-mono">{h.holder === mine ? "you" : short(h.holder)}</span>}
+                  {h.holder === coin.creator && <span className="chip bg-primary/15 text-primary">dev</span>}
+                  <span className="num ml-auto">{(h.share * 100).toFixed(2)}%</span>
+                </li>
+              ))}
+            </ol>
+          </div>
         </aside>
       </div>
     </div>
   );
 }
 
-function Stat({ k, v, cls = "", accent }: { k: string; v: string; cls?: string; accent?: boolean }) {
+function Stat({ label, value, gold }: { label: string; value: string; gold?: boolean }) {
   return (
     <div>
-      <div className="text-xs text-muted">{k}</div>
-      <div className={`num font-bold ${accent ? "text-lime" : ""} ${cls}`}>{v}</div>
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className={cn("num text-sm font-semibold", gold && "text-gold")}>{value}</p>
     </div>
+  );
+}
+
+function SocialLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer nofollow" aria-label={label} title={label} className="inline-flex size-5 items-center justify-center rounded bg-secondary text-foreground hover:bg-accent">
+      {children}
+    </a>
+  );
+}
+
+function XMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-3" fill="currentColor" aria-hidden>
+      <path d="M18.9 2H22l-7.6 8.7L23 22h-6.8l-5.3-6.9L4.8 22H1.7l8.1-9.3L1 2h7l4.8 6.3L18.9 2Zm-1.2 18h1.9L7.4 4H5.4l12.3 16Z" />
+    </svg>
   );
 }

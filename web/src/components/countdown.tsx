@@ -11,5 +11,5 @@ export function Countdown({ to, className = "" }: { to: number; className?: stri
     return () => clearInterval(t);
   }, []);
   const left = to - now;
-  return <span className={`num ${left < 60 ? "text-sell" : ""} ${className}`}>{left <= 0 ? "00:00" : clock(left)}</span>;
+  return <span className={`num ${left < 60 ? "text-down" : ""} ${className}`}>{left <= 0 ? "00:00" : clock(left)}</span>;
 }

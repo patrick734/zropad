@@ -1,30 +1,23 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata, Viewport } from "next";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 import { Providers } from "@/components/providers";
-import { Header } from "@/components/header";
-import { HypeLayer } from "@/components/hype";
+import { Shell } from "@/components/shell";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Zropad · The launchpad for Zero",
+  title: { default: "Zropad · launch coins on Zero", template: "%s · Zropad" },
   description: "Launch a coin on Zero in one transaction. Bonding curve, locked liquidity, creator fees up to 50%, and a countdown jackpot on every coin.",
 };
 
+export const viewport: Viewport = { themeColor: "#050506" };
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
-      </head>
-      <body>
+    <html lang="en" className={`dark ${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className="min-h-dvh font-sans text-sm">
         <Providers>
-          <Header />
-          <HypeLayer />
-          <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
-          <footer className="mx-auto max-w-7xl px-4 py-10 text-center text-xs text-muted">
-            Zropad · Community-built on Zero. Not affiliated with LayerZero Labs.
-          </footer>
+          <Shell>{children}</Shell>
         </Providers>
       </body>
     </html>

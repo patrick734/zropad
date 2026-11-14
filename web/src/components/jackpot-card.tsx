@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { type Address } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import { Loader2, Timer } from "lucide-react";
 import { hubAbi } from "@/lib/abi";
-import { ZROPAD, chain } from "@/lib/config";
+import { NATIVE, ZROPAD, chain } from "@/lib/config";
 import { natSym, short } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { Countdown } from "./countdown";
+import { Button } from "./ui/button";
 
 /** The coin's countdown jackpot: be the last buyer when it hits zero. */
-export function JackpotCard({ coin, pot, deadline, round, lastBuyer }: { coin: Address; pot: number; deadline: number; round: number; lastBuyer: string | null }) {
+export function JackpotCard({ coin, pot, deadline, round, lastBuyer, minBuy }: { coin: Address; pot: number; deadline: number; round: number; lastBuyer: string | null; minBuy: string }) {
   const { address } = useAccount();
   const pc = usePublicClient({ chainId: chain.id });
   const { writeContractAsync } = useWriteContract();
@@ -29,29 +32,34 @@ export function JackpotCard({ coin, pot, deadline, round, lastBuyer }: { coin: A
   }
 
   return (
-    <div className={`panel p-5 ${leading ? "glow border-lime/50" : ""}`}>
+    <div className={cn("panel space-y-2 p-4", leading && "glow border-gold/50")}>
       <div className="flex items-center justify-between">
-        <div className="text-xs font-bold tracking-widest text-gold">🎰 JACKPOT · ROUND {round}</div>
-        <div className="text-xs text-muted">last buyer wins</div>
+        <p className="flex items-center gap-1.5 font-semibold text-gold"><Timer className="size-4" /> Jackpot</p>
+        <span className="text-xs text-muted-foreground">round {round}</span>
       </div>
-      <div className="num mt-2 text-3xl font-black text-gold">{natSym(pot, 4)}</div>
-      <div className="mt-1 text-sm text-muted">
-        {over ? "Countdown over" : <>Ends in <Countdown to={deadline} className="text-lg font-bold text-white" /></>}
+      <div className="flex items-end justify-between">
+        <p className="num text-2xl font-semibold text-gold">{natSym(pot, 4)}</p>
+        <p className="text-right text-xs text-muted-foreground">
+          {over ? "countdown over" : <>ends in <Countdown to={deadline} className="text-base font-semibold text-foreground" /></>}
+        </p>
       </div>
-      <div className="mt-3 text-sm">
+      <p className="text-xs">
         {lastBuyer ? (
           <>
-            Leading: <b className={leading ? "text-lime" : ""}>{leading ? "you! 🔥" : short(lastBuyer)}</b>
+            <span className="text-muted-foreground">Last buyer: </span>
+            <span className={leading ? "font-semibold text-up" : "font-mono"}>{leading ? "you" : short(lastBuyer)}</span>
           </>
         ) : (
-          <span className="text-muted">No one leads this round yet.</span>
+          <span className="text-muted-foreground">Nobody leads this round yet.</span>
         )}
-      </div>
-      <p className="mt-3 text-xs text-muted">Every buy of 0.005+ makes you the leader and adds 30 s (up to 24 h). At zero, the leader wins 90%; 10% seeds the next round. Fed by 0.2% of every trade and the sniper tax.</p>
+      </p>
+      <p className="text-xs text-muted-foreground">
+        Every buy of {minBuy} {NATIVE} or more makes you the last buyer and adds 30 seconds (up to 24 hours). When it hits zero, the last buyer wins 90%; 10% starts the next round.
+      </p>
       {over && lastBuyer && (
-        <button className="btn btn-lime mt-3 w-full" disabled={busy} onClick={settle}>
-          {busy ? "Paying out…" : "Pay out the winner"}
-        </button>
+        <Button variant="secondary" className="w-full" disabled={busy} onClick={settle}>
+          {busy ? <Loader2 className="animate-spin" /> : null} Pay out the winner
+        </Button>
       )}
     </div>
   );

@@ -2,128 +2,206 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useCoins, useFeed, useStats, type Coin } from "@/lib/api";
-import { natSym } from "@/lib/format";
-import { CoinCard } from "@/components/coin-card";
-import { KingOfTheHill } from "@/components/king";
-import { Countdown } from "@/components/countdown";
+import { Crown, Flame, Radar, Radio, Timer, Trophy } from "lucide-react";
+import { useAccount } from "wagmi";
+import { useCoins, useFeed, usePoints, type Coin } from "@/lib/api";
+import { ZROPAD } from "@/lib/config";
+import { ago, natSym, pct, short } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { Column, Empty, Rows, Tabs } from "@/components/column";
+import { ScreenerRow, Thumb, TrendingRow } from "@/components/coin-rows";
+import { Avatar } from "@/components/avatar";
 import { CoinImage } from "@/components/coin-image";
+import { CurveProgress } from "@/components/progress";
+import { Countdown } from "@/components/countdown";
+import { FeedLine } from "@/components/hype";
 
-const TABS = [
-  ["trending", "🔥 Trending"],
-  ["new", "✨ New"],
-  ["ignition", "🚀 About to graduate"],
-  ["jackpot", "🎰 Biggest jackpots"],
-  ["graduated", "🎓 Graduated"],
+const PANES = [
+  ["trending", "Trending"],
+  ["jackpots", "Jackpots"],
+  ["leaders", "Points"],
+  ["live", "Live"],
+  ["screener", "Screener"],
 ] as const;
+type Pane = (typeof PANES)[number][0];
 
-function Stat({ label, value }: { label: string; value: string }) {
+/** The home terminal: five live panes side by side on desktop, one at a time on phones. */
+export default function Home() {
+  const [pane, setPane] = useState<Pane>("trending");
+  const show = (p: Pane) => cn(pane === p ? "flex" : "hidden", "xl:flex");
+  const king = useFeed().data?.king?.address;
   return (
-    <div className="panel px-4 py-3">
-      <div className="text-xs text-muted">{label}</div>
-      <div className="num text-lg font-bold">{value}</div>
+    <div className="space-y-3">
+      {!ZROPAD && <div className="rounded-lg border border-gold/30 bg-gold/5 px-3 py-2 text-xs text-gold">Launches open as soon as the contracts are live.</div>}
+      <Tabs value={pane} options={PANES} onChange={setPane} className="overflow-x-auto xl:hidden" />
+      <div className="grid h-[calc(100dvh-13rem)] gap-3 lg:h-[calc(100dvh-10.5rem)] xl:h-[calc(100dvh-7.5rem)] xl:grid-cols-5">
+        <TrendingPane className={show("trending")} king={king} />
+        <JackpotPane className={show("jackpots")} />
+        <LeaderPane className={show("leaders")} />
+        <LivePane className={show("live")} />
+        <ScreenerPane className={show("screener")} king={king} />
+      </div>
     </div>
   );
 }
 
-/** Cards flash green or red when their coin trades. */
+/** Flashes a row green or coral when its market cap moves. */
 function useFlashes(coins: Coin[] | undefined) {
-  const last = useRef(new Map<string, { trades: number; price: number }>());
-  const [flash, setFlash] = useState<Record<string, "buy" | "sell">>({});
+  const last = useRef(new Map<string, number>());
+  const [flash, setFlash] = useState(new Map<string, "up" | "down">());
   useEffect(() => {
     if (!coins) return;
-    const next: Record<string, "buy" | "sell"> = {};
+    const next = new Map<string, "up" | "down">();
     for (const c of coins) {
-      const prev = last.current.get(c.address);
-      if (prev && c.trades > prev.trades) next[c.address] = c.price >= prev.price ? "buy" : "sell";
-      last.current.set(c.address, { trades: c.trades, price: c.price });
+      const before = last.current.get(c.address);
+      if (before != null && before !== c.mcap) next.set(c.address, c.mcap > before ? "up" : "down");
+      last.current.set(c.address, c.mcap);
     }
-    if (Object.keys(next).length) {
+    if (next.size) {
       setFlash(next);
-      const t = setTimeout(() => setFlash({}), 1300);
+      const t = setTimeout(() => setFlash(new Map()), 900);
       return () => clearTimeout(t);
     }
   }, [coins]);
   return flash;
 }
 
-export default function Home() {
-  const [tab, setTab] = useState<(typeof TABS)[number][0]>("trending");
-  const [q, setQ] = useState("");
-  const { data: coins, isLoading } = useCoins(tab, q);
-  const { data: feed } = useFeed();
-  const { data: stats } = useStats();
-  const { data: ending } = useCoins("jackpot");
-  const flash = useFlashes(coins);
-  const soon = (ending ?? [])
-    .filter((c) => c.jackpot_deadline && c.jackpot_deadline > Date.now() / 1000 && (c.jackpot_pot ?? 0) > 0)
-    .sort((a, b) => a.jackpot_deadline! - b.jackpot_deadline!)
-    .slice(0, 6);
+const HOURS = [["1", "1h"], ["4", "4h"], ["12", "12h"], ["24", "24h"]] as const;
 
+function TrendingPane({ className, king }: { className: string; king?: string }) {
+  const [h, setH] = useState<(typeof HOURS)[number][0]>("1");
+  const { data } = useCoins("trending", "", Number(h), 30);
+  const flash = useFlashes(data);
   return (
-    <div className="space-y-6">
-      <section className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-black leading-tight md:text-5xl">
-            Every Zero coin <span className="text-lime">starts here.</span>
-          </h1>
-          <p className="mt-2 max-w-xl text-muted">Launch in one transaction. Ride the curve to graduation. Be the last buyer when the countdown hits zero and take the jackpot.</p>
-        </div>
-        <Link href="/launch" className="btn btn-lime px-6 py-3 text-lg">
-          🚀 Launch a coin
-        </Link>
-      </section>
-
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label="Coins launched" value={String(stats?.coins ?? "—")} />
-        <Stat label="Graduated" value={String(stats?.graduated ?? "—")} />
-        <Stat label="24h volume" value={stats ? natSym(stats.volume24h, 2) : "—"} />
-        <Stat label="Live jackpots" value={stats ? natSym(stats.jackpotsLive, 3) : "—"} />
-      </section>
-
-      <KingOfTheHill coin={feed?.king ?? null} />
-
-      {soon.length > 0 && (
-        <section>
-          <h2 className="mb-2 font-bold">⏳ Jackpots ending soon</h2>
-          <div className="flex gap-3 overflow-x-auto pb-1">
-            {soon.map((c) => (
-              <Link key={c.address} href={`/coin/${c.address}`} className="panel flex min-w-56 items-center gap-3 p-3">
-                <CoinImage src={c.image} symbol={c.symbol} size={40} />
-                <div>
-                  <div className="font-bold">${c.symbol}</div>
-                  <div className="num text-sm text-gold">{natSym(c.jackpot_pot, 3)}</div>
-                  <Countdown to={c.jackpot_deadline!} className="text-xs text-muted" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+    <Column className={className} title="Trending" icon={<Flame className="size-4 text-down" />} tabs={<Tabs value={h} options={HOURS} onChange={setH} className="ml-auto" />}>
+      {!data ? (
+        <Rows />
+      ) : data.length ? (
+        data.map((c, i) => <TrendingRow key={c.address} c={c} king={c.address === king} hot={i < 5 && c.volume_window > 0} flash={flash.get(c.address)} />)
+      ) : (
+        <Empty>
+          No coins yet. <Link href="/create" className="text-primary">Launch the first one.</Link>
+        </Empty>
       )}
+    </Column>
+  );
+}
 
-      <section>
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          {TABS.map(([k, label]) => (
-            <button key={k} onClick={() => setTab(k)} className={`rounded-xl px-3 py-2 text-sm font-semibold ${tab === k ? "bg-white text-ink" : "text-muted hover:bg-white/5"}`}>
-              {label}
-            </button>
-          ))}
-          <input className="input ml-auto max-w-xs" placeholder="Search name, ticker or address" value={q} onChange={(e) => setQ(e.target.value)} />
+/** King of the Hill on top, then every jackpot about to pay out. */
+function JackpotPane({ className }: { className: string }) {
+  const king = useFeed().data?.king ?? null;
+  const { data } = useCoins("ending", "", 1, 30);
+  return (
+    <Column className={className} title="Jackpots" icon={<Timer className="size-4 text-gold" />} actions={<Link href="/jackpots" className="text-[11px] text-muted-foreground hover:text-foreground">All</Link>}>
+      <KingCard c={king} />
+      <p className="label px-3 pb-1 pt-3">Ending soon · last buyer wins</p>
+      {!data ? (
+        <Rows n={4} />
+      ) : data.length ? (
+        data.map((c) => <JackpotRow key={c.address} c={c} />)
+      ) : (
+        <Empty>No live jackpots. Every buy on a coin feeds its pot and resets the countdown.</Empty>
+      )}
+    </Column>
+  );
+}
+
+function KingCard({ c }: { c: Coin | null }) {
+  if (!c)
+    return (
+      <div className="m-2 rounded-lg border border-dashed border-input p-4 text-center text-xs text-muted-foreground">
+        <Crown className="mx-auto mb-1 size-5 text-gold" />
+        No king yet. The coin closest to graduating takes the crown.
+      </div>
+    );
+  return (
+    <Link href={`/coin/${c.address}`} className="glow m-2 block rounded-lg border border-gold/40 bg-gold/5 p-3 hover:bg-gold/10">
+      <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-gold"><Crown className="size-3.5" /> King of the hill</p>
+      <div className="mt-2 flex items-center gap-2.5">
+        <CoinImage src={c.image} symbol={c.symbol} address={c.address} className="size-12" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13px] font-semibold">{c.name} <span className="font-normal text-muted-foreground">${c.symbol}</span></p>
+          <p className="num text-[11px] text-muted-foreground">MC <span className="text-foreground">{natSym(c.mcap, 2)}</span> · fee {pct(c.creator_fee_bps)}</p>
         </div>
-        {isLoading ? (
-          <div className="text-muted">Loading…</div>
-        ) : coins?.length ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {coins.map((c) => (
-              <CoinCard key={c.address} coin={c} flash={flash[c.address]} />
-            ))}
+      </div>
+      <CurveProgress value={c.progress} className="mt-2.5 h-1.5" />
+      <p className="num mt-1 text-[11px] text-muted-foreground">{(c.progress * 100).toFixed(1)}% to graduation</p>
+    </Link>
+  );
+}
+
+function JackpotRow({ c }: { c: Coin }) {
+  return (
+    <Link href={`/coin/${c.address}`} className="flex items-center gap-2.5 border-b border-border/60 px-3 py-2 hover:bg-secondary/60">
+      <Thumb c={c} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-semibold">{c.symbol}</p>
+        <p className="truncate text-[11px] text-muted-foreground">{c.jackpot_last_buyer ? <>leader {short(c.jackpot_last_buyer)}</> : "no leader yet"}</p>
+      </div>
+      <div className="text-right">
+        <p className="num text-[13px] font-semibold text-gold">{natSym(c.jackpot_pot ?? 0, 3)}</p>
+        <Countdown to={c.jackpot_deadline ?? 0} className="text-[11px]" />
+      </div>
+    </Link>
+  );
+}
+
+function LeaderPane({ className }: { className: string }) {
+  const { data } = usePoints();
+  const me = useAccount().address?.toLowerCase();
+  return (
+    <Column className={className} title="Points" icon={<Trophy className="size-4 text-gold" />} actions={<Link href="/points" className="text-[11px] text-muted-foreground hover:text-foreground">All</Link>}>
+      {!data ? (
+        <Rows />
+      ) : data.length ? (
+        data.slice(0, 50).map((t, i) => (
+          <div key={t.who} className={cn("flex items-center gap-2.5 border-b border-border/60 px-3 py-2", t.who === me && "bg-primary/5")}>
+            <span className={cn("num w-5 text-right text-xs", i < 3 ? "text-gold" : "text-muted-foreground")}>{i + 1}</span>
+            <Avatar seed={t.who} className="size-7" />
+            <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{t.who === me ? "you" : short(t.who)}</span>
+            <span className="num text-[13px] font-semibold text-up">{t.points.toLocaleString()}</span>
           </div>
-        ) : (
-          <div className="panel p-10 text-center text-muted">
-            Nothing here yet. <Link href="/launch" className="text-lime">Launch the first coin →</Link>
-          </div>
-        )}
-      </section>
-    </div>
+        ))
+      ) : (
+        <Empty>No points yet. Launch or buy a coin to get on the board.</Empty>
+      )}
+    </Column>
+  );
+}
+
+/** Everything happening, as it happens. */
+function LivePane({ className }: { className: string }) {
+  const { data } = useFeed();
+  return (
+    <Column className={className} title="Live" icon={<Radio className="size-4 text-down" />} actions={<span className="size-2 animate-pulse rounded-full bg-down" />}>
+      {!data ? (
+        <Rows />
+      ) : data.feed.length ? (
+        data.feed.map((f, i) => (
+          <Link key={`${f.tx}-${f.kind}-${i}`} href={`/coin/${f.coin}`} className="flex items-start gap-2.5 border-b border-border/60 px-3 py-2 hover:bg-secondary/60">
+            <CoinImage src={f.image} symbol={f.symbol} address={f.coin} className="size-8" />
+            <div className="min-w-0 flex-1 text-xs leading-snug text-muted-foreground">
+              <FeedLine f={f} />
+              {f.early ? <span className="chip ml-1 bg-up/10 text-up">early</span> : null}
+            </div>
+            <span className="shrink-0 text-[11px] text-muted-foreground">{ago(f.time)}</span>
+          </Link>
+        ))
+      ) : (
+        <Empty>Quiet so far.</Empty>
+      )}
+    </Column>
+  );
+}
+
+const SCREENS = [["new", "New"], ["ignition", "Soon"], ["graduated", "Graduated"], ["movers", "Movers"]] as const;
+
+function ScreenerPane({ className, king }: { className: string; king?: string }) {
+  const [s, setS] = useState<(typeof SCREENS)[number][0]>("new");
+  const { data } = useCoins(s, "", 1, 30);
+  return (
+    <Column className={className} title="Pro screener" icon={<Radar className="size-4 text-primary" />} tabs={<Tabs value={s} options={SCREENS} onChange={setS} green />}>
+      {!data ? <Rows /> : data.length ? data.map((c) => <ScreenerRow key={c.address} c={c} king={c.address === king} />) : <Empty>Nothing here right now.</Empty>}
+    </Column>
   );
 }

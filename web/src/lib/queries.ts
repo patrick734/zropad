@@ -9,6 +9,8 @@ export type Coin = {
   price: number; mcap: number; raised: number; volume: number; trades: number; last_trade_at: number | null;
   image: string | null; description: string | null; website: string | null; twitter: string | null; telegram: string | null;
   progress: number; volume24h: number; change24h: number | null; holders: number;
+  /** Volume and price change over the window asked for (1h by default), and holder concentration in %. */
+  volume_window: number; change_window: number | null; dev_pct: number; top10: number;
   jackpot_pot: number | null; jackpot_deadline: number | null; jackpot_round: number | null; jackpot_last_buyer: string | null;
 };
 
@@ -16,24 +18,43 @@ const COIN_SELECT = `
   SELECT c.*,
     CASE WHEN c.graduated = 1 THEN 1.0 ELSE MIN(1.0, c.raised / ${GRADUATION}) END AS progress,
     COALESCE((SELECT SUM(native) FROM trades t WHERE t.coin = c.address AND t.time > @since), 0) AS volume24h,
-    (SELECT price FROM trades t WHERE t.coin = c.address AND t.time <= @since ORDER BY time DESC, log_index DESC LIMIT 1) AS price_then,
+    COALESCE((SELECT price FROM trades t WHERE t.coin = c.address AND t.time <= @since ORDER BY time DESC, log_index DESC LIMIT 1),
+      (SELECT price FROM trades t WHERE t.coin = c.address ORDER BY time, log_index LIMIT 1)) AS price_then,
+    COALESCE((SELECT SUM(native) FROM trades t WHERE t.coin = c.address AND t.time > @win), 0) AS volume_window,
+    COALESCE((SELECT price FROM trades t WHERE t.coin = c.address AND t.time <= @win ORDER BY time DESC, log_index DESC LIMIT 1),
+      (SELECT price FROM trades t WHERE t.coin = c.address ORDER BY time, log_index LIMIT 1)) AS price_win,
+    COALESCE((SELECT CAST(amount AS REAL) FROM balances b WHERE b.coin = c.address AND b.holder = c.creator), 0) / 1e25 AS dev_pct,
+    COALESCE((SELECT SUM(a) FROM (SELECT CAST(amount AS REAL) AS a FROM balances b WHERE b.coin = c.address AND b.holder <> c.market ORDER BY a DESC LIMIT 10)), 0) / 1e25 AS top10,
     (SELECT COUNT(*) FROM balances b WHERE b.coin = c.address AND b.holder <> c.market AND b.amount <> '0') AS holders,
     j.pot AS jackpot_pot, j.deadline AS jackpot_deadline, j.round AS jackpot_round, j.last_buyer AS jackpot_last_buyer
   FROM coins c LEFT JOIN jackpots j ON j.coin = c.address`;
 
-type Row = Coin & { price_then: number | null };
+type Row = Coin & { price_then: number | null; price_win: number | null };
 const shape = (r: Row): Coin => {
-  const { price_then, ...rest } = r;
-  return { ...rest, change24h: price_then ? (r.price / price_then - 1) * 100 : null };
+  const { price_then, price_win, ...rest } = r;
+  // A coin younger than the window is measured from its first trade.
+  return {
+    ...rest,
+    change24h: price_then ? (r.price / price_then - 1) * 100 : null,
+    change_window: price_win ? (r.price / price_win - 1) * 100 : null,
+  };
 };
 
 const now = () => Math.floor(Date.now() / 1000);
 
-export type Sort = "trending" | "new" | "ignition" | "graduated" | "mcap" | "jackpot";
+export const SORTS = ["trending", "movers", "new", "ignition", "graduated", "mcap", "jackpot", "last_trade", "oldest", "ending"] as const;
+export type Sort = (typeof SORTS)[number];
 
-export function listCoins(sort: Sort = "trending", limit = 60, q = ""): Coin[] {
+/** The base select's parameters: 24h ago, and the start of the window (in hours). */
+const params = (hours = 1) => ({ since: now() - 86400, win: now() - Math.round(hours * 3600) });
+
+export function listCoins(sort: Sort = "trending", limit = 60, q = "", hours = 1): Coin[] {
   const order: Record<Sort, string> = {
-    trending: "volume24h DESC, last_trade_at DESC",
+    trending: "volume_window DESC, volume24h DESC, last_trade_at DESC",
+    movers: "(price_win IS NULL), (price / price_win) DESC, volume_window DESC",
+    last_trade: "last_trade_at IS NULL, last_trade_at DESC",
+    oldest: "created_at ASC",
+    ending: "jackpot_deadline ASC",
     new: "created_at DESC",
     ignition: "progress DESC, last_trade_at DESC",
     graduated: "graduated_at DESC",
@@ -41,15 +62,17 @@ export function listCoins(sort: Sort = "trending", limit = 60, q = ""): Coin[] {
     jackpot: "jackpot_pot DESC",
   };
   const where: string[] = [];
-  if (sort === "ignition") where.push("c.graduated = 0");
+  if (sort === "ignition") where.push("c.graduated = 0 AND c.raised > 0");
   if (sort === "graduated") where.push("c.graduated = 1");
+  if (sort === "ending") where.push("j.pot > 0 AND j.deadline > @now");
+  if (sort === "jackpot") where.push("j.pot > 0");
   if (q) where.push("(c.name LIKE @q OR c.symbol LIKE @q OR c.address = @qa)");
   const sql = `${COIN_SELECT} ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY ${order[sort]} LIMIT @limit`;
-  return (getDb().prepare(sql).all({ since: now() - 86400, limit, q: `%${q}%`, qa: q.toLowerCase() }) as Row[]).map(shape);
+  return (getDb().prepare(sql).all({ ...params(hours), now: now(), limit, q: `%${q}%`, qa: q.toLowerCase() }) as Row[]).map(shape);
 }
 
 export function getCoin(address: string): Coin | null {
-  const r = getDb().prepare(`${COIN_SELECT} WHERE c.address = @a`).get({ since: now() - 86400, a: address.toLowerCase() }) as Row | undefined;
+  const r = getDb().prepare(`${COIN_SELECT} WHERE c.address = @a`).get({ ...params(24), a: address.toLowerCase() }) as Row | undefined;
   return r ? shape(r) : null;
 }
 
@@ -145,7 +168,7 @@ export function wallet(address: string) {
   const a = address.toLowerCase();
   const db = getDb();
   return {
-    created: db.prepare(`${COIN_SELECT} WHERE c.creator = @a ORDER BY c.created_at DESC`).all({ since: now() - 86400, a }).map((r) => shape(r as Row)),
+    created: db.prepare(`${COIN_SELECT} WHERE c.creator = @a ORDER BY c.created_at DESC`).all({ ...params(24), a }).map((r) => shape(r as Row)),
     holdings: db.prepare(`SELECT b.coin, b.amount, c.symbol, c.name, c.image, c.price FROM balances b JOIN coins c ON c.address = b.coin WHERE b.holder = ? AND b.amount <> '0'`).all(a)
       .map((r) => {
         const x = r as { coin: string; amount: string; symbol: string; name: string; image: string | null; price: number };

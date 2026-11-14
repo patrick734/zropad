@@ -1,8 +1,12 @@
 "use client";
 
+import { Trophy } from "lucide-react";
 import { useAccount } from "wagmi";
 import { usePoints } from "@/lib/api";
 import { short } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/avatar";
+import { Empty, Rows } from "@/components/column";
 
 const RULES: [string, string][] = [
   ["Buy", "1,000 points per 1 native coin you buy"],
@@ -14,39 +18,44 @@ const RULES: [string, string][] = [
 
 export default function Points() {
   const { data } = usePoints();
-  const { address } = useAccount();
-  const me = address?.toLowerCase();
+  const me = useAccount().address?.toLowerCase();
   const myRank = data?.findIndex((r) => r.who === me) ?? -1;
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-[1fr_320px]">
-      <div className="panel p-6">
-        <h1 className="text-3xl font-black">Points</h1>
-        <p className="mb-5 text-muted">The leaderboard for everyone building Zropad's first season.</p>
+    <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[1fr_300px]">
+      <div className="space-y-3">
+        <div>
+          <h1 className="flex items-center gap-2 text-xl font-semibold"><Trophy className="size-5 text-gold" /> Points</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Season one: everyone trading and launching on Zropad, ranked.</p>
+        </div>
         {myRank >= 0 && data && (
-          <div className="mb-4 rounded-xl border border-lime/40 bg-lime/10 p-3 text-sm">
-            You&apos;re <b>#{myRank + 1}</b> with <b className="num">{data[myRank].points.toLocaleString()}</b> points.
+          <div className="rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-sm">
+            You&apos;re <span className="font-semibold">#{myRank + 1}</span> with <span className="num font-semibold text-primary">{data[myRank].points.toLocaleString()}</span> points.
           </div>
         )}
-        <ol className="space-y-1">
-          {(data ?? []).map((r, i) => (
-            <li key={r.who} className={`flex items-center justify-between rounded-lg px-3 py-2 ${r.who === me ? "bg-lime/10" : i % 2 ? "" : "bg-white/[0.03]"}`}>
-              <span>
-                <span className="mr-3 inline-block w-8 text-muted">{i < 3 ? ["🥇", "🥈", "🥉"][i] : `#${i + 1}`}</span>
-                {r.who === me ? <b className="text-lime">you</b> : short(r.who)}
-              </span>
-              <span className="num font-bold">{r.points.toLocaleString()}</span>
-            </li>
-          ))}
-        </ol>
-        {data && !data.length && <div className="py-10 text-center text-muted">No points yet. Launch or buy a coin to get on the board.</div>}
+        <div className="panel overflow-hidden">
+          {!data ? (
+            <Rows />
+          ) : data.length ? (
+            data.map((r, i) => (
+              <div key={r.who} className={cn("flex items-center gap-3 border-b border-border/60 px-4 py-2.5 last:border-0", r.who === me && "bg-primary/5")}>
+                <span className={cn("num w-6 text-right text-xs", i < 3 ? "font-semibold text-gold" : "text-muted-foreground")}>{i + 1}</span>
+                <Avatar seed={r.who} className="size-7" />
+                <span className="min-w-0 flex-1 truncate font-mono text-[13px]">{r.who === me ? "you" : short(r.who)}</span>
+                <span className="num text-[13px] font-semibold text-up">{r.points.toLocaleString()}</span>
+              </div>
+            ))
+          ) : (
+            <Empty>No points yet. Launch or buy a coin to get on the board.</Empty>
+          )}
+        </div>
       </div>
-      <aside className="panel h-fit space-y-3 p-5">
-        <div className="text-xs font-bold tracking-widest text-muted">HOW TO EARN</div>
+      <aside className="panel h-fit space-y-3 p-4 lg:sticky lg:top-28">
+        <p className="label">How to earn</p>
         {RULES.map(([k, v]) => (
           <div key={k}>
-            <div className="font-semibold">{k}</div>
-            <div className="text-sm text-muted">{v}</div>
+            <p className="text-[13px] font-semibold">{k}</p>
+            <p className="text-xs text-muted-foreground">{v}</p>
           </div>
         ))}
       </aside>

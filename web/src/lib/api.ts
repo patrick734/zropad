@@ -15,7 +15,8 @@ const get = async <T,>(url: string): Promise<T> => {
 };
 
 /** Live data, refreshed every couple of seconds. */
-export const useCoins = (sort: string, q = "") => useQuery({ queryKey: ["coins", sort, q], queryFn: () => get<Coin[]>(`/api/coins?sort=${sort}&q=${encodeURIComponent(q)}`), refetchInterval: 3000 });
+export const useCoins = (sort: string, q = "", hours = 1, limit = 60) =>
+  useQuery({ queryKey: ["coins", sort, q, hours, limit], queryFn: () => get<Coin[]>(`/api/coins?sort=${sort}&q=${encodeURIComponent(q)}&hours=${hours}&limit=${limit}`), refetchInterval: 3000 });
 export const useFeed = () => useQuery({ queryKey: ["feed"], queryFn: () => get<{ feed: FeedItem[]; king: Coin | null }>("/api/feed"), refetchInterval: 2000 });
 export const useStats = () => useQuery({ queryKey: ["stats"], queryFn: () => get<Stats>("/api/stats"), refetchInterval: 5000 });
 export const useCoin = (address: string, interval = 60) => useQuery({ queryKey: ["coin", address, interval], queryFn: () => get<CoinDetail>(`/api/coin/${address}?interval=${interval}`), refetchInterval: 2000 });

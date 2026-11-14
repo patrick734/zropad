@@ -37,18 +37,19 @@ const SECTIONS: [string, string[]][] = [
 
 export default function Docs() {
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <h1 className="text-4xl font-black">How Zropad works</h1>
+    <div className="mx-auto max-w-3xl space-y-3">
+      <h1 className="text-2xl font-semibold">How Zropad works</h1>
       {SECTIONS.map(([title, body]) => (
-        <section key={title} className="panel p-6">
-          <h2 className="mb-2 text-xl font-black text-lime">{title}</h2>
-          <ul className="space-y-2 text-muted">
+        <section key={title} className="panel p-4">
+          <h2 className="mb-2 font-semibold text-primary">{title}</h2>
+          <ul className="list-disc space-y-1.5 pl-4 text-[13px] text-muted-foreground marker:text-primary/60">
             {body.map((p) => (
               <li key={p}>{p}</li>
             ))}
           </ul>
         </section>
       ))}
+      <p className="pt-2 text-center text-xs text-muted-foreground">Community-built on Zero. Not affiliated with LayerZero Labs.</p>
     </div>
   );
 }
