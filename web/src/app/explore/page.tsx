@@ -121,7 +121,7 @@ export default function Explore() {
                     </div>
                   </td>
                   <td className="num px-3 py-2 text-right">
-                    {(c.jackpot_pot ?? 0) > 0 && c.jackpot_deadline ? (
+                    {(c.jackpot_pot ?? 0) > 0 && (c.jackpot_deadline ?? 0) > Date.now() / 1000 ? (
                       <span className="text-gold">{nat(c.jackpot_pot ?? 0, 3)} · <Countdown to={c.jackpot_deadline} /></span>
                     ) : (
                       <span className="text-muted-foreground">—</span>

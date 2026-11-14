@@ -34,3 +34,6 @@ export function clock(secs: number) {
 }
 
 export const pct = (bps: number) => `${(bps / 100).toFixed(bps % 100 ? 2 : 0)}%`;
+
+/** A signed profit: +0.12 ETH / -0.03 ETH. */
+export const pnl = (v: number) => `${v >= 0 ? "+" : "-"}${nat(Math.abs(v), 3)} ${NATIVE}`;

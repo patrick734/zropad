@@ -1,1 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#7ef29d"/><path d="M18 18h28v6L27 40h19v6H18v-6l19-16H18z" fill="#04170b"/><circle cx="46" cy="18" r="5" fill="#04170b"/><circle cx="46" cy="18" r="2" fill="#7ef29d"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 10 172 186">
+<defs>
+ <linearGradient id="zb" x1="0" y1="0" x2=".35" y2="1"><stop offset="0" stop-color="#f2fff5"/><stop offset=".45" stop-color="#8ff0a8"/><stop offset="1" stop-color="#1f8a4c"/></linearGradient>
+ <radialGradient id="zs" cx=".3" cy=".18" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+ <clipPath id="zc"><path d="M46 22 H154 A16 16 0 0 1 170 38 V52 A16 16 0 0 1 165 63.5 L95 136 H154 A16 16 0 0 1 170 152 V164 A16 16 0 0 1 154 180 H46 A16 16 0 0 1 30 164 V150 A16 16 0 0 1 35 138.5 L105 66 H46 A16 16 0 0 1 30 50 V38 A16 16 0 0 1 46 22 Z"/></clipPath>
+ <filter id="zf" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="4"/></filter>
+ <filter id="zd" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+<path d="M46 22 H154 A16 16 0 0 1 170 38 V52 A16 16 0 0 1 165 63.5 L95 136 H154 A16 16 0 0 1 170 152 V164 A16 16 0 0 1 154 180 H46 A16 16 0 0 1 30 164 V150 A16 16 0 0 1 35 138.5 L105 66 H46 A16 16 0 0 1 30 50 V38 A16 16 0 0 1 46 22 Z" fill="#000" opacity=".5" transform="translate(4 7)" filter="url(#zd)"/>
+<path d="M46 22 H154 A16 16 0 0 1 170 38 V52 A16 16 0 0 1 165 63.5 L95 136 H154 A16 16 0 0 1 170 152 V164 A16 16 0 0 1 154 180 H46 A16 16 0 0 1 30 164 V150 A16 16 0 0 1 35 138.5 L105 66 H46 A16 16 0 0 1 30 50 V38 A16 16 0 0 1 46 22 Z" fill="url(#zb)"/>
+<g clip-path="url(#zc)">
+ <path d="M46 22 H154 A16 16 0 0 1 170 38 V52 A16 16 0 0 1 165 63.5 L95 136 H154 A16 16 0 0 1 170 152 V164 A16 16 0 0 1 154 180 H46 A16 16 0 0 1 30 164 V150 A16 16 0 0 1 35 138.5 L105 66 H46 A16 16 0 0 1 30 50 V38 A16 16 0 0 1 46 22 Z" fill="none" stroke="#04170b" stroke-opacity=".55" stroke-width="22" filter="url(#zf)"/>
+ <path d="M46 22 H154 A16 16 0 0 1 170 38 V52 A16 16 0 0 1 165 63.5 L95 136 H154 A16 16 0 0 1 170 152 V164 A16 16 0 0 1 154 180 H46 A16 16 0 0 1 30 164 V150 A16 16 0 0 1 35 138.5 L105 66 H46 A16 16 0 0 1 30 50 V38 A16 16 0 0 1 46 22 Z" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="5" transform="translate(-1.2 -1.6)"/>
+ <rect x="0" y="0" width="200" height="200" fill="url(#zs)"/>
+</g>
+<path d="M46 22 H154 A16 16 0 0 1 170 38 V52 A16 16 0 0 1 165 63.5 L95 136 H154 A16 16 0 0 1 170 152 V164 A16 16 0 0 1 154 180 H46 A16 16 0 0 1 30 164 V150 A16 16 0 0 1 35 138.5 L105 66 H46 A16 16 0 0 1 30 50 V38 A16 16 0 0 1 46 22 Z" fill="none" stroke="#eafff0" stroke-opacity=".9" stroke-width="2.2"/>
+</svg>

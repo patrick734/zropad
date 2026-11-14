@@ -85,3 +85,13 @@
 @keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 0%, transparent); } 50% { box-shadow: 0 0 22px 0 color-mix(in srgb, var(--gold) 22%, transparent); } }
 .glow { animation: glow 2.4s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .tape, .flash, .flash-down, .pop-in, .glow { animation: none; } }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-up { animation: sheet-up 0.32s cubic-bezier(0.2, 0.9, 0.3, 1); }
+@media (min-width: 640px) { .sheet-up { animation: pop-in 0.22s ease-out; } }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6%) rotate(2deg); } }
+.bob { animation: bob 3.2s ease-in-out infinite; }
+@keyframes float-coin { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.float-coin { animation: float-coin 4s ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: 0.2; } }
+.twinkle { animation: twinkle 2.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .sheet-up, .bob, .float-coin, .twinkle { animation: none; } }

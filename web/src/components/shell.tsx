@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, ChevronsLeft, ChevronsRight, Compass, Flame, Gift, House, Plus, Search, Trophy, Timer } from "lucide-react";
+import { ArrowLeft, Award, BookOpen, ChevronsLeft, ChevronsRight, Compass, Flame, Gift, House, Plus, Search, Trophy, Timer } from "lucide-react";
 import { CHAIN_NAME } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { Logo, Wordmark } from "./logo";
@@ -12,17 +12,19 @@ import { SearchPalette } from "./search-palette";
 import { ConnectButton } from "./connect";
 import { SoundToggle } from "./sound-toggle";
 import { Toasts } from "./hype";
+import { Onboarding } from "./onboarding";
 import { buttonClass } from "./ui/button";
 
 const NAV = [
   { href: "/", label: "Home", icon: House },
   { href: "/explore", label: "Explore", icon: Compass },
   { href: "/jackpots", label: "Jackpots", icon: Timer },
-  { href: "/points", label: "Points", icon: Trophy },
+  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+  { href: "/points", label: "Points", icon: Award },
   { href: "/me", label: "My rewards", icon: Gift },
   { href: "/stake", label: "$ZRPD", icon: Flame },
 ];
-export const MOBILE_NAV = [NAV[0], NAV[1], { href: "/create", label: "Create", icon: Plus }, NAV[3], NAV[4]];
+export const MOBILE_NAV = [NAV[0], NAV[1], { href: "/create", label: "Create", icon: Plus }, NAV[3], NAV[5]];
 
 const active = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 const TESTNET = /sepolia|testnet|anvil/i.test(CHAIN_NAME);
@@ -95,6 +97,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </Link>
         <div className="mt-auto space-y-1">
           {railItem({ href: "/docs", label: "How it works", icon: BookOpen })}
+          {wide && (
+            <p className="flex gap-3 px-2.5 text-[11px] text-muted-foreground">
+              <Link href="/terms" className="hover:text-foreground">Terms</Link>
+              <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+            </p>
+          )}
           {wide && <p className="px-2.5 text-[11px] leading-snug text-muted-foreground">Community-built on Zero. Not affiliated with LayerZero Labs.</p>}
           {wide && TESTNET && <p className="px-2.5 text-[11px] text-gold">{CHAIN_NAME} testnet</p>}
         </div>
@@ -145,6 +153,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       {searching && <SearchPalette onClose={() => setSearching(false)} />}
       <Toasts />
+      <Onboarding />
     </div>
   );
 }

@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Crown, Flame, Radar, Radio, Timer, Trophy } from "lucide-react";
+import { Award, Crown, Flame, Radar, Timer, Trophy } from "lucide-react";
 import { useAccount } from "wagmi";
-import { useCoins, useFeed, usePoints, type Coin } from "@/lib/api";
+import { useCoins, useFeed, usePoints, useTraders, type Coin } from "@/lib/api";
 import { ZROPAD } from "@/lib/config";
-import { ago, natSym, pct, short } from "@/lib/format";
+import { natSym, pct, pnl, short } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Column, Empty, Rows, Tabs } from "@/components/column";
 import { ScreenerRow, Thumb, TrendingRow } from "@/components/coin-rows";
@@ -14,13 +14,12 @@ import { Avatar } from "@/components/avatar";
 import { CoinImage } from "@/components/coin-image";
 import { CurveProgress } from "@/components/progress";
 import { Countdown } from "@/components/countdown";
-import { FeedLine } from "@/components/hype";
 
 const PANES = [
   ["trending", "Trending"],
   ["jackpots", "Jackpots"],
-  ["leaders", "Points"],
-  ["live", "Live"],
+  ["leaders", "Leaderboard"],
+  ["points", "Points"],
   ["screener", "Screener"],
 ] as const;
 type Pane = (typeof PANES)[number][0];
@@ -38,7 +37,7 @@ export default function Home() {
         <TrendingPane className={show("trending")} king={king} />
         <JackpotPane className={show("jackpots")} />
         <LeaderPane className={show("leaders")} />
-        <LivePane className={show("live")} />
+        <PointsPane className={show("points")} />
         <ScreenerPane className={show("screener")} king={king} />
       </div>
     </div>
@@ -146,11 +145,38 @@ function JackpotRow({ c }: { c: Coin }) {
   );
 }
 
+const WINDOWS = [["1d", "1D"], ["1w", "1W"]] as const;
+
+/** Traders by profit over the day or week, like the leaderboard page. */
 function LeaderPane({ className }: { className: string }) {
+  const [w, setW] = useState<(typeof WINDOWS)[number][0]>("1d");
+  const { data } = useTraders(w, 30);
+  const me = useAccount().address?.toLowerCase();
+  return (
+    <Column className={className} title="Leaderboard" icon={<Trophy className="size-4 text-gold" />} actions={<Link href="/leaderboard" className="text-[11px] text-muted-foreground hover:text-foreground">All</Link>} tabs={<Tabs value={w} options={WINDOWS} onChange={setW} className="ml-auto" />}>
+      {!data ? (
+        <Rows />
+      ) : data.traders.length ? (
+        data.traders.map((t, i) => (
+          <Link key={t.wallet} href="/leaderboard" className={cn("flex items-center gap-2.5 border-b border-border/60 px-3 py-2 hover:bg-secondary/60", t.wallet === me && "bg-primary/5")}>
+            <span className={cn("num w-5 text-right text-xs", i < 3 ? "text-gold" : "text-muted-foreground")}>{i + 1}</span>
+            <Avatar seed={t.wallet} className="size-7" />
+            <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{t.wallet === me ? "you" : short(t.wallet)}</span>
+            <span className={cn("num text-[13px] font-semibold", t.pnl >= 0 ? "text-up" : "text-down")}>{pnl(t.pnl)}</span>
+          </Link>
+        ))
+      ) : (
+        <Empty>No trades in this window yet.</Empty>
+      )}
+    </Column>
+  );
+}
+
+function PointsPane({ className }: { className: string }) {
   const { data } = usePoints();
   const me = useAccount().address?.toLowerCase();
   return (
-    <Column className={className} title="Points" icon={<Trophy className="size-4 text-gold" />} actions={<Link href="/points" className="text-[11px] text-muted-foreground hover:text-foreground">All</Link>}>
+    <Column className={className} title="Points" icon={<Award className="size-4 text-gold" />} actions={<Link href="/points" className="text-[11px] text-muted-foreground hover:text-foreground">All</Link>}>
       {!data ? (
         <Rows />
       ) : data.length ? (
@@ -164,31 +190,6 @@ function LeaderPane({ className }: { className: string }) {
         ))
       ) : (
         <Empty>No points yet. Launch or buy a coin to get on the board.</Empty>
-      )}
-    </Column>
-  );
-}
-
-/** Everything happening, as it happens. */
-function LivePane({ className }: { className: string }) {
-  const { data } = useFeed();
-  return (
-    <Column className={className} title="Live" icon={<Radio className="size-4 text-down" />} actions={<span className="size-2 animate-pulse rounded-full bg-down" />}>
-      {!data ? (
-        <Rows />
-      ) : data.feed.length ? (
-        data.feed.map((f, i) => (
-          <Link key={`${f.tx}-${f.kind}-${i}`} href={`/coin/${f.coin}`} className="flex items-start gap-2.5 border-b border-border/60 px-3 py-2 hover:bg-secondary/60">
-            <CoinImage src={f.image} symbol={f.symbol} address={f.coin} className="size-8" />
-            <div className="min-w-0 flex-1 text-xs leading-snug text-muted-foreground">
-              <FeedLine f={f} />
-              {f.early ? <span className="chip ml-1 bg-up/10 text-up">early</span> : null}
-            </div>
-            <span className="shrink-0 text-[11px] text-muted-foreground">{ago(f.time)}</span>
-          </Link>
-        ))
-      ) : (
-        <Empty>Quiet so far.</Empty>
       )}
     </Column>
   );

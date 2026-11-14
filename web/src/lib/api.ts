@@ -23,3 +23,10 @@ export const useCoin = (address: string, interval = 60) => useQuery({ queryKey: 
 export const usePoints = () => useQuery({ queryKey: ["points"], queryFn: () => get<{ who: string; points: number }[]>("/api/points"), refetchInterval: 10000 });
 export const useWallet = (address?: string) =>
   useQuery({ queryKey: ["wallet", address], enabled: !!address, queryFn: () => get<{ created: Coin[]; holdings: { coin: string; amount: number; symbol: string; name: string; image: string | null; value: number }[]; wins: { coin: string; symbol: string; amount: number; round: number; time: number }[] }>(`/api/wallet/${address}`), refetchInterval: 5000 });
+
+export type Trader = { wallet: string; pnl: number; volume: number; coins: number };
+export type Earner = { wallet: string; earned: number; coins: number };
+export const useTraders = (w: string, limit = 50) =>
+  useQuery({ queryKey: ["traders", w, limit], queryFn: () => get<{ traders: Trader[] }>(`/api/leaderboard?w=${w}&limit=${limit}`), refetchInterval: 20_000 });
+export const useEarners = (w: string, limit = 50) =>
+  useQuery({ queryKey: ["earners", w, limit], queryFn: () => get<{ earners: Earner[] }>(`/api/leaderboard?tab=earners&w=${w}&limit=${limit}`), refetchInterval: 20_000 });

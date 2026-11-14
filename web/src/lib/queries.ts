@@ -178,3 +178,50 @@ export function wallet(address: string) {
     wins: db.prepare("SELECT w.*, c.symbol FROM wins w JOIN coins c ON c.address = w.coin WHERE w.winner = ? ORDER BY w.time DESC").all(a),
   };
 }
+
+export type Window = "1d" | "1w" | "1m";
+const WINDOW_SECONDS: Record<Window, number> = { "1d": 86400, "1w": 7 * 86400, "1m": 30 * 86400 };
+export const asWindow = (w: string | null): Window => (w === "1w" || w === "1m" ? w : "1d");
+
+/**
+ * Traders ranked by profit over a window, marked to market: what they took out selling, minus what
+ * they put in buying, plus what they still hold at today's price, minus the value at the window's
+ * start of coins they already held then. Amounts are in the native coin.
+ */
+export function traders(w: Window, limit = 50) {
+  return getDb()
+    .prepare(
+      `WITH w AS (
+         SELECT trader, coin,
+           SUM(CASE WHEN is_buy = 1 THEN native ELSE 0 END) AS bought,
+           SUM(CASE WHEN is_buy = 0 THEN native ELSE 0 END) AS sold,
+           SUM(CASE WHEN is_buy = 1 THEN tokens ELSE -tokens END) AS net
+         FROM trades WHERE time > @since GROUP BY trader, coin
+       ), sp AS (
+         SELECT c.address AS coin, COALESCE(
+           (SELECT price FROM trades t WHERE t.coin = c.address AND t.time <= @since ORDER BY time DESC, log_index DESC LIMIT 1),
+           (SELECT price FROM trades t WHERE t.coin = c.address ORDER BY time, log_index LIMIT 1)) AS start_price
+         FROM coins c WHERE c.address IN (SELECT DISTINCT coin FROM w)
+       ), p AS (
+         SELECT w.*, c.price AS now_price, COALESCE(CAST(b.amount AS REAL) / 1e18, 0) AS bal, sp.start_price
+         FROM w JOIN coins c ON c.address = w.coin JOIN sp ON sp.coin = w.coin
+         LEFT JOIN balances b ON b.coin = w.coin AND b.holder = w.trader
+       )
+       SELECT trader AS wallet,
+         SUM(sold - bought + bal * now_price - MAX(bal - net, 0) * start_price) AS pnl,
+         SUM(bought + sold) AS volume, COUNT(*) AS coins
+       FROM p GROUP BY trader ORDER BY pnl DESC LIMIT @limit`,
+    )
+    .all({ since: now() - WINDOW_SECONDS[w], limit: Math.min(limit, 200) }) as { wallet: string; pnl: number; volume: number; coins: number }[];
+}
+
+/** Creators ranked by the creator fees their coins earned over a window. */
+export function earners(w: Window, limit = 50) {
+  return getDb()
+    .prepare(
+      `SELECT c.creator AS wallet, SUM(t.creator_fee) AS earned, COUNT(DISTINCT c.address) AS coins
+       FROM trades t JOIN coins c ON c.address = t.coin
+       WHERE t.time > @since GROUP BY c.creator HAVING earned > 0 ORDER BY earned DESC LIMIT @limit`,
+    )
+    .all({ since: now() - WINDOW_SECONDS[w], limit: Math.min(limit, 200) }) as { wallet: string; earned: number; coins: number }[];
+}
