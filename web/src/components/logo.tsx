@@ -8,7 +8,7 @@ export function Logo({ className = "size-8" }: { className?: string }) {
 export function Wordmark({ className }: { className?: string }) {
   return (
     <span className={cn("text-lg font-extrabold tracking-tight", className)}>
-      Zro<span className="text-primary">pad</span>
+      Ely<span className="text-primary">pad</span>
     </span>
   );
 }

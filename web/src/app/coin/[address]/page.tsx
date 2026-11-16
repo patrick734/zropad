@@ -164,7 +164,7 @@ export default function CoinPage({ params }: { params: Promise<{ address: string
                 {holders.map((h, i) => (
                   <li key={h.holder} className="flex items-center gap-2">
                     <span className="w-5 text-muted-foreground">{i + 1}.</span>
-                    {h.isMarket ? <span>{coin.graduated ? "Zropad pool (locked)" : "Bonding curve"}</span> : <span className={h.holder === mine ? "font-semibold text-up" : "font-mono"}>{h.holder === mine ? "you" : short(h.holder)}</span>}
+                    {h.isMarket ? <span>{coin.graduated ? "Elypad pool (locked)" : "Bonding curve"}</span> : <span className={h.holder === mine ? "font-semibold text-up" : "font-mono"}>{h.holder === mine ? "you" : short(h.holder)}</span>}
                     {h.holder === coin.creator && <span className="chip bg-primary/15 text-primary">dev</span>}
                     <span className="num ml-auto">{(h.share * 100).toFixed(2)}%</span>
                   </li>
@@ -185,7 +185,7 @@ export default function CoinPage({ params }: { params: Promise<{ address: string
             {coin.graduated ? (
               <div className="space-y-1">
                 <p className="flex items-center gap-1.5 font-semibold text-gold"><GraduationCap className="size-4" /> Graduated</p>
-                <p className="text-xs text-muted-foreground">Trading in its Zropad pool now, right here. The pool&apos;s liquidity is locked for good: nobody can pull it.</p>
+                <p className="text-xs text-muted-foreground">Trading in its Elypad pool now, right here. The pool&apos;s liquidity is locked for good: nobody can pull it.</p>
                 <a href={explorerAddress(coin.market)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
                   View pool <ExternalLink className="size-3" />
                 </a>
@@ -213,7 +213,7 @@ export default function CoinPage({ params }: { params: Promise<{ address: string
               {holders.slice(0, 12).map((h, i) => (
                 <li key={h.holder} className="flex items-center gap-2">
                   <span className="w-5 text-muted-foreground">{i + 1}.</span>
-                  {h.isMarket ? <span>{coin.graduated ? "Zropad pool (locked)" : "Bonding curve"}</span> : <span className="font-mono">{h.holder === mine ? "you" : short(h.holder)}</span>}
+                  {h.isMarket ? <span>{coin.graduated ? "Elypad pool (locked)" : "Bonding curve"}</span> : <span className="font-mono">{h.holder === mine ? "you" : short(h.holder)}</span>}
                   {h.holder === coin.creator && <span className="chip bg-primary/15 text-primary">dev</span>}
                   <span className="num ml-auto">{(h.share * 100).toFixed(2)}%</span>
                 </li>

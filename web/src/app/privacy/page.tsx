@@ -3,7 +3,7 @@ import { Contact, H, L, LegalPage, P } from "@/components/legal";
 
 export const metadata: Metadata = { title: "Privacy Policy" };
 
-const N = "Zropad";
+const N = "Elypad";
 
 export default function Privacy() {
   return (

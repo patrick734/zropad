@@ -10,7 +10,7 @@ export const wagmiConfig = createConfig({
   chains: [chain],
   connectors: [
     injected({ shimDisconnect: true }),
-    ...(wc ? [walletConnect({ projectId: wc, metadata: { name: "Zropad", description: "The launchpad for Zero", url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://zropad.fun", icons: [] }, showQrModal: true })] : []),
+    ...(wc ? [walletConnect({ projectId: wc, metadata: { name: "Elypad", description: "Elypad on Zero", url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://zero.elypad.fun", icons: [] }, showQrModal: true })] : []),
   ],
   transports: { [chain.id]: http(RPC_URL) },
   ssr: true,

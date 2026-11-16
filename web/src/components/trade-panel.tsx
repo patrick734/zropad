@@ -90,7 +90,7 @@ export function TradePanel({ coin, market, symbol, creatorFeeBps, graduated }: {
       </div>
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>{graduated ? "in the Zropad pool" : "on the bonding curve"}</span>
+        <span>{graduated ? "in the Elypad pool" : "on the bonding curve"}</span>
         <button onClick={() => setEditSlip(!editSlip)} className="inline-flex items-center gap-1 hover:text-foreground">
           <SlidersHorizontal className="size-3.5" /> slippage {slippage}%
         </button>
@@ -135,7 +135,7 @@ export function TradePanel({ coin, market, symbol, creatorFeeBps, graduated }: {
         </p>
       ) : (
         <p className={cn("rounded-lg p-2.5 text-xs", totalFee > 1100 ? "bg-gold/10 text-gold" : "bg-secondary text-muted-foreground")}>
-          Fee on this trade: <span className="num font-semibold text-foreground">{pct(totalFee)}</span> · 1% Zropad + {pct(creatorFeeBps)} creator
+          Fee on this trade: <span className="num font-semibold text-foreground">{pct(totalFee)}</span> · 1% Elypad + {pct(creatorFeeBps)} creator
         </p>
       )}
 

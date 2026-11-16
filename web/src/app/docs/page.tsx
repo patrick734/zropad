@@ -1,6 +1,6 @@
-import { GRADUATION, NATIVE } from "@/lib/config";
+import { GRADUATION, NATIVE, TOKEN } from "@/lib/config";
 
-export const metadata = { title: "How it works · Zropad" };
+export const metadata = { title: "How it works · Elypad" };
 
 const SECTIONS: [string, string[]][] = [
   ["Launching", [
@@ -11,12 +11,12 @@ const SECTIONS: [string, string[]][] = [
   ["The bonding curve", [
     `800M coins are sold on a curve: the price rises with every buy and falls with every sell.`,
     `When ${GRADUATION} ${NATIVE} has been raised, the coin graduates. The remaining 200M coins and everything raised go into a pool that opens at the curve's final price.`,
-    "The pool's liquidity is locked for good. There are no LP tokens and no function to withdraw it, so nobody, including Zropad, can pull it.",
+    "The pool's liquidity is locked for good. There are no LP tokens and no function to withdraw it, so nobody, including Elypad, can pull it.",
   ]],
   ["Fees", [
-    "Every buy and sell pays 1% to Zropad, plus the creator fee the creator chose at launch: anything from 0% to 50%. It's fixed for good and shown before every trade.",
+    "Every buy and sell pays 1% to Elypad, plus the creator fee the creator chose at launch: anything from 0% to 50%. It's fixed for good and shown before every trade.",
     `Creator fees are paid in ${NATIVE} and can be claimed any time from "My coins & rewards".`,
-    "Zropad's 1% is split: 50% to the treasury, 30% to $ZRPD stakers, 20% to the coin's jackpot.",
+    `Elypad's 1% is split: 50% to the treasury, 30% to $${TOKEN} stakers, 20% to the coin's jackpot.`,
   ]],
   ["Sniper tax", [
     "For the first 2 seconds after a launch, buys pay a 99% tax. Bots that buy in the launch block get almost nothing; the tax goes into the coin's jackpot for real traders.",
@@ -25,20 +25,20 @@ const SECTIONS: [string, string[]][] = [
     "Every coin has a jackpot with a countdown. It starts at 1 hour.",
     `Each buy of 0.005 ${NATIVE} or more makes you the last buyer and adds 30 seconds, up to 24 hours on the clock.`,
     "When the countdown hits zero, the last buyer wins 90% of the pot. 10% seeds the next round, and a new countdown starts.",
-    "The pot grows from 20% of Zropad's fee on every trade, plus all sniper tax.",
+    "The pot grows from 20% of Elypad's fee on every trade, plus all sniper tax.",
   ]],
   ["King of the Hill", ["The live coin closest to graduating sits on the throne at the top of the home page until another coin passes it."]],
   ["Early buyers & points", [
     "The first 50 different wallets to buy a coin after the sniper window are its early buyers, marked EARLY in the trades list.",
     "Early buyers earn double points on those buys, and 100 bonus points if the coin graduates. See the Points page for everything that earns points.",
   ]],
-  ["$ZRPD", ["$ZRPD is Zropad's platform token: 1,000,000,000 supply.", "Stake $ZRPD to earn 30% of Zropad's trading fee, paid in " + NATIVE + " on every trade. No lockup.", "Points from season one track your activity ahead of $ZRPD."]],
+  [`$${TOKEN}`, [`$${TOKEN} is Elypad's platform token on Zero: 1,000,000,000 supply.`, `Stake $${TOKEN} to earn 30% of Elypad's trading fee, paid in ${NATIVE} on every trade. No lockup.`, `Points from season one track your activity ahead of $${TOKEN}.`]],
 ];
 
 export default function Docs() {
   return (
     <div className="mx-auto max-w-3xl space-y-3">
-      <h1 className="text-2xl font-semibold">How Zropad works</h1>
+      <h1 className="text-2xl font-semibold">How Elypad on Zero works</h1>
       {SECTIONS.map(([title, body]) => (
         <section key={title} className="panel p-4">
           <h2 className="mb-2 font-semibold text-primary">{title}</h2>

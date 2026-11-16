@@ -4,6 +4,7 @@ import { Trophy } from "lucide-react";
 import { useAccount } from "wagmi";
 import { usePoints } from "@/lib/api";
 import { short } from "@/lib/format";
+import { TOKEN } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/avatar";
 import { Empty, Rows } from "@/components/column";
@@ -26,7 +27,7 @@ export default function Points() {
       <div className="space-y-3">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-semibold"><Trophy className="size-5 text-gold" /> Points</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Season one: everyone trading and launching on Zropad, ranked. Points track your activity ahead of $ZRPD, Zropad&apos;s platform token.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Season one: everyone trading and launching on Elypad, ranked. Points track your activity ahead of ${TOKEN}, Elypad&apos;s platform token.</p>
         </div>
         {myRank >= 0 && data && (
           <div className="rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-sm">

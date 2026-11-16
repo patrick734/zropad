@@ -4,7 +4,7 @@ import { useState } from "react";
 import { formatEther, maxUint256, parseEther } from "viem";
 import { useAccount, usePublicClient, useReadContract, useWriteContract } from "wagmi";
 import { stakingAbi, zrpdAbi } from "@/lib/abi";
-import { NATIVE, STAKING, ZRPD, chain } from "@/lib/config";
+import { NATIVE, STAKING, TOKEN, ZRPD, chain } from "@/lib/config";
 import { compact, nat } from "@/lib/format";
 import { Flame } from "lucide-react";
 import { ConnectButton } from "@/components/connect";
@@ -65,16 +65,16 @@ export default function Stake() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
-        <h1 className="flex items-center gap-2 text-xl font-semibold"><Flame className="size-5 text-primary" /> Stake $ZRPD</h1>
-        <p className="mt-1 text-sm text-muted-foreground">30% of Zropad&apos;s 1% trading fee goes to $ZRPD stakers, paid in {NATIVE}, as every trade happens. No lockup.</p>
+        <h1 className="flex items-center gap-2 text-xl font-semibold"><Flame className="size-5 text-primary" /> Stake ${TOKEN}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">30% of Elypad&apos;s 1% trading fee goes to ${TOKEN} stakers, paid in {NATIVE}, as every trade happens. No lockup.</p>
       </div>
       {!STAKING ? (
-        <div className="panel p-8 text-center text-xs text-muted-foreground">Staking opens when $ZRPD launches.</div>
+        <div className="panel p-8 text-center text-xs text-muted-foreground">Staking opens when ${TOKEN} launches.</div>
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-3">
-            <Box k="Total staked" v={`${compact(Number(formatEther(total ?? 0n)))} ZRPD`} />
-            <Box k="Your stake" v={`${compact(Number(formatEther(staked ?? 0n)))} ZRPD`} sub={share ? `${share}% of the pool` : undefined} />
+            <Box k="Total staked" v={`${compact(Number(formatEther(total ?? 0n)))} ${TOKEN}`} />
+            <Box k="Your stake" v={`${compact(Number(formatEther(staked ?? 0n)))} ${TOKEN}`} sub={share ? `${share}% of the pool` : undefined} />
             <Box k="Your rewards" v={`${nat(Number(formatEther(earned ?? 0n)))} ${NATIVE}`} accent />
           </div>
           <div className="panel space-y-4 p-4">
@@ -87,7 +87,7 @@ export default function Stake() {
             </div>
             <div>
               <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                <span>Amount (ZRPD)</span>
+                <span>Amount ({TOKEN})</span>
                 <button onClick={() => max && setAmount(formatEther(max))}>Max: {compact(Number(formatEther(max ?? 0n)))}</button>
               </div>
               <input className="field num h-12 text-lg" inputMode="decimal" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value.replace(",", "."))} />

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, Award, BookOpen, ChevronsLeft, ChevronsRight, Compass, Flame, Gift, House, Plus, Search, Trophy, Timer } from "lucide-react";
-import { CHAIN_NAME } from "@/lib/config";
+import { CHAIN_NAME, TOKEN } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { Logo, Wordmark } from "./logo";
 import { Ticker } from "./ticker";
@@ -13,6 +13,7 @@ import { ConnectButton } from "./connect";
 import { SoundToggle } from "./sound-toggle";
 import { Toasts } from "./hype";
 import { Onboarding } from "./onboarding";
+import { NetworkSwitch } from "./network-switch";
 import { buttonClass } from "./ui/button";
 
 const NAV = [
@@ -22,7 +23,7 @@ const NAV = [
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/points", label: "Points", icon: Award },
   { href: "/me", label: "My rewards", icon: Gift },
-  { href: "/stake", label: "$ZRPD", icon: Flame },
+  { href: "/stake", label: `$${TOKEN}`, icon: Flame },
 ];
 export const MOBILE_NAV = [NAV[0], NAV[1], { href: "/create", label: "Create", icon: Plus }, NAV[3], NAV[5]];
 
@@ -120,6 +121,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <span>Search for coins…</span>
             <kbd className="ml-auto hidden rounded border border-input px-1 text-[10px] sm:block">⌘K</kbd>
           </button>
+          <NetworkSwitch />
           {TESTNET && <span className="chip hidden bg-gold/10 text-gold md:inline-flex">Testnet</span>}
           <div className="ml-auto flex items-center gap-1.5">
             <SoundToggle />

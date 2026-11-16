@@ -6,11 +6,11 @@ import {Zropad} from "../src/Zropad.sol";
 import {ZropadMarket} from "../src/ZropadMarket.sol";
 import {ZropadToken} from "../src/ZropadToken.sol";
 import {ZropadStaking} from "../src/ZropadStaking.sol";
-import {ZRPD} from "../src/ZRPD.sol";
+import {PlatformToken} from "../src/PlatformToken.sol";
 
 contract ZropadTest is Test {
     Zropad hub;
-    ZRPD zrpd;
+    PlatformToken zrpd;
     ZropadStaking staking;
     address owner = address(0xA11CE);
     address treasury = address(0x7EA5);
@@ -45,7 +45,7 @@ contract ZropadTest is Test {
     function setUp() public {
         vm.warp(clock);
         hub = new Zropad(owner, treasury, defaults());
-        zrpd = new ZRPD(owner);
+        zrpd = new PlatformToken("Elypad Zero", "TEST", owner);
         staking = new ZropadStaking(zrpd);
         vm.prank(owner);
         hub.setStaking(address(staking));

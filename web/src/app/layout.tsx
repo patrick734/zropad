@@ -6,7 +6,7 @@ import { Shell } from "@/components/shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "Zropad · launch coins on Zero", template: "%s · Zropad" },
+  title: { default: "Elypad on Zero · launch a coin in one click", template: "%s · Elypad on Zero" },
   description: "Launch a coin on Zero in one transaction. Bonding curve, locked liquidity, creator fees up to 50%, and a countdown jackpot on every coin.",
 };
 

@@ -120,7 +120,7 @@ export function candles(address: string, interval = 60) {
   return out;
 }
 
-/** The live feed: latest trades, launches, graduations and jackpot wins across Zropad. */
+/** The live feed: latest trades, launches, graduations and jackpot wins across Elypad. */
 export function feed(limit = 40) {
   const db = getDb();
   const trades = db.prepare(`SELECT 'trade' AS kind, t.tx, t.coin, t.trader AS who, t.is_buy, t.native, t.tokens, t.time, t.early, c.symbol, c.name, c.image

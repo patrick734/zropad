@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CHAIN_NAME } from "@/lib/config";
+import { CHAIN_NAME, TOKEN } from "@/lib/config";
 import { Contact, H, L, LegalPage, P } from "@/components/legal";
 
 export const metadata: Metadata = { title: "Terms of Use" };
 
-const N = "Zropad";
+const N = "Elypad";
 const TESTNET = /sepolia|testnet|anvil/i.test(CHAIN_NAME);
 
 export default function Terms() {
@@ -19,7 +19,7 @@ export default function Terms() {
       <H>1. What {N} is</H>
       <P>
         {N} is a website that lets you use open smart contracts: launching coins, trading them on bonding curves and in their pools after graduation, staking
-        $ZRPD, Zropad&apos;s platform token, and taking part in each coin&apos;s countdown jackpot. The contracts run on the blockchain on their own; the Site is
+        ${TOKEN}, Elypad&apos;s platform token, and taking part in each coin&apos;s countdown jackpot. The contracts run on the blockchain on their own; the Site is
         one way to reach them.
       </P>
       <P>
@@ -58,7 +58,7 @@ export default function Terms() {
       <H>5. Fees</H>
       <P>
         Trades and launches pay the fees set in the contracts and described on <Link href="/docs" className="text-primary hover:underline">How it works</Link>:
-        a launch fee, Zropad&apos;s 1% on every trade, any creator fee the coin&apos;s creator chose, the sniper tax on buys in the first 2 seconds after a
+        a launch fee, Elypad&apos;s 1% on every trade, any creator fee the coin&apos;s creator chose, the sniper tax on buys in the first 2 seconds after a
         launch, and network gas. Fees are taken by the contracts automatically when a transaction runs.
       </P>
 
@@ -85,7 +85,7 @@ export default function Terms() {
       <P>
         Nothing on the Site is financial, investment, legal or tax advice. Prices, market caps, profits, points and other figures are calculated from on-chain
         data and may be delayed or wrong. Points record your activity on the Site ahead of
-        $ZRPD, Zropad&apos;s platform token. Your trading decisions are your own.
+        ${TOKEN}, Elypad&apos;s platform token. Your trading decisions are your own.
       </P>
 
       <H>9. The Site is provided as it is</H>

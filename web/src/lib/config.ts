@@ -16,6 +16,10 @@ const addr = (v: string) => (/^0x[0-9a-fA-F]{40}$/.test(v) ? (v as Address) : un
 export const ZROPAD = addr(env(process.env.NEXT_PUBLIC_ZROPAD));
 export const ZRPD = addr(env(process.env.NEXT_PUBLIC_ZRPD));
 export const STAKING = addr(env(process.env.NEXT_PUBLIC_STAKING));
+/** The platform token's ticker on this network. */
+export const TOKEN = env(process.env.NEXT_PUBLIC_TOKEN_SYMBOL, "ZRPD");
+/** Elypad on Elysium, for the network switcher. */
+export const ELYSIUM_URL = env(process.env.NEXT_PUBLIC_ELYSIUM_URL, "https://elypad.fun");
 
 /** Native raised at graduation (display only; the market contract is the source of truth). */
 export const GRADUATION = Number(env(process.env.NEXT_PUBLIC_GRADUATION, "4.2"));

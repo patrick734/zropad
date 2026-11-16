@@ -84,7 +84,7 @@ export default function Create() {
 
   async function launch() {
     setError(null);
-    if (!ZROPAD || !pc) return setError("Zropad isn't deployed on this network yet.");
+    if (!ZROPAD || !pc) return setError("Elypad isn't deployed on this network yet.");
     try {
       setStep("Uploading image…");
       const form = new FormData();
@@ -205,7 +205,7 @@ export default function Create() {
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              You take {(feeBps / 100).toFixed(2)}% of every buy and sell, paid in {NATIVE}, plus Zropad&apos;s 1%: {(total / 100).toFixed(2)}% in all. It&apos;s fixed for good and shown to traders before every trade.
+              You take {(feeBps / 100).toFixed(2)}% of every buy and sell, paid in {NATIVE}, plus Elypad&apos;s 1%: {(total / 100).toFixed(2)}% in all. It&apos;s fixed for good and shown to traders before every trade.
             </p>
           </div>
 
@@ -236,7 +236,7 @@ export default function Create() {
               )}
             </Button>
           )}
-          {!ZROPAD && <p className="text-xs text-destructive">Launching is off: this site has no Zropad address yet.</p>}
+          {!ZROPAD && <p className="text-xs text-destructive">Launching is off: this site has no Elypad address yet.</p>}
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-28 lg:self-start">

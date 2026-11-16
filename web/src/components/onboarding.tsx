@@ -6,7 +6,7 @@ import Link from "next/link";
 import { CHAIN_NAME } from "@/lib/config";
 import { Button } from "./ui/button";
 
-const KEY = "zropad_onboarded";
+const KEY = "elypad_zero_onboarded";
 
 /** First-visit welcome: a sheet from the bottom on phones, a card on desktop. */
 export function Onboarding() {
@@ -29,14 +29,14 @@ export function Onboarding() {
   };
   const chain = /sepolia|testnet|anvil/i.test(CHAIN_NAME) ? "Zero" : CHAIN_NAME;
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/70 backdrop-blur-[2px] sm:items-center sm:justify-center sm:p-4" role="dialog" aria-modal aria-label="Welcome to Zropad">
+    <div className="fixed inset-0 z-50 flex items-end bg-black/70 backdrop-blur-[2px] sm:items-center sm:justify-center sm:p-4" role="dialog" aria-modal aria-label="Welcome to Elypad on Zero">
       <div className="sheet-up w-full rounded-t-3xl border-t-2 border-primary/70 bg-background px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5 shadow-[0_-12px_40px_-8px_rgba(126,242,157,0.35)] sm:max-w-md sm:rounded-3xl sm:border-2">
         <Hero />
         <h2 className="mt-6 text-center text-[26px] font-bold tracking-tight">
-          Welcome to Zro<span className="text-primary">pad</span>!
+          Welcome to Ely<span className="text-primary">pad</span> on Zero!
         </h2>
         <p className="mx-auto mt-3 max-w-sm text-center text-[15px] leading-relaxed text-muted-foreground">
-          Zropad lets anyone launch a coin on {chain}, and everyone buys at the same price from the first second. No presale, no team bag, and a jackpot on every coin.
+          Elypad lets anyone launch a coin on {chain}, and everyone buys at the same price from the first second. No presale, no team bag, and a jackpot on every coin.
         </p>
         <Button size="lg" className="mt-6 h-12 w-full rounded-2xl text-base font-semibold" onClick={close}>
           Continue
@@ -51,13 +51,13 @@ export function Onboarding() {
   );
 }
 
-/** Night over the pond: the Zropad Z out front, coins floating up behind it. */
+/** Night over the pond: the Elypad E out front, coins floating up behind it. */
 function Hero() {
   const coins = [
-    { x: "8%", y: "38%", s: 34, d: "0s", t: "Z" },
+    { x: "8%", y: "38%", s: 34, d: "0s", t: "E" },
     { x: "20%", y: "14%", s: 26, d: "1.2s", t: "$" },
     { x: "74%", y: "12%", s: 30, d: "0.6s", t: "0" },
-    { x: "86%", y: "40%", s: 36, d: "1.8s", t: "Z" },
+    { x: "86%", y: "40%", s: 36, d: "1.8s", t: "E" },
     { x: "64%", y: "52%", s: 22, d: "2.4s", t: "$" },
     { x: "30%", y: "56%", s: 20, d: "0.9s", t: "0" },
   ];
