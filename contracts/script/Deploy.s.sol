@@ -13,7 +13,7 @@ import {ZropadStaking} from "../src/ZropadStaking.sol";
  *
  * Optional: GRADUATION (native raised at graduation, default 4.2e18), LAUNCH_FEE (default 0.0005e18),
  * JACKPOT_MIN_BUY (default 0.005e18), TOKEN_NAME and TOKEN_SYMBOL (the platform token; default
- * "Elypad Zero" / "ZRPD"). The platform token's whole supply goes to TREASURY.
+ * "Elypad Zero" / "ELYZ"). The platform token's whole supply goes to TREASURY.
  */
 contract Deploy is Script {
     function run() external {
@@ -34,7 +34,7 @@ contract Deploy is Script {
         vm.startBroadcast();
         address deployer = msg.sender;
         Zropad hub = new Zropad(deployer, treasury, c);
-        PlatformToken zrpd = new PlatformToken(vm.envOr("TOKEN_NAME", string("Elypad Zero")), vm.envOr("TOKEN_SYMBOL", string("ZRPD")), treasury);
+        PlatformToken zrpd = new PlatformToken(vm.envOr("TOKEN_NAME", string("Elypad Zero")), vm.envOr("TOKEN_SYMBOL", string("ELYZ")), treasury);
         ZropadStaking staking = new ZropadStaking(zrpd);
         hub.setStaking(address(staking));
         if (owner != deployer) hub.transferOwnership(owner); // the owner accepts with acceptOwnership()

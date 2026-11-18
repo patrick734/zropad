@@ -17,7 +17,7 @@ export const ZROPAD = addr(env(process.env.NEXT_PUBLIC_ZROPAD));
 export const ZRPD = addr(env(process.env.NEXT_PUBLIC_ZRPD));
 export const STAKING = addr(env(process.env.NEXT_PUBLIC_STAKING));
 /** The platform token's ticker on this network. */
-export const TOKEN = env(process.env.NEXT_PUBLIC_TOKEN_SYMBOL, "ZRPD");
+export const TOKEN = env(process.env.NEXT_PUBLIC_TOKEN_SYMBOL, "ELYZ");
 /** Elypad on Elysium, for the network switcher. */
 export const ELYSIUM_URL = env(process.env.NEXT_PUBLIC_ELYSIUM_URL, "https://elypad.fun");
 
