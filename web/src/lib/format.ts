@@ -2,10 +2,19 @@ import { NATIVE } from "./config";
 
 export const short = (a?: string | null) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "—");
 
-/** A native amount for people: 4.2, 0.0125, 0.00004. */
+const SUB = "₀₁₂₃₄₅₆₇₈₉";
+/** Tiny amounts with the run of zeros counted in subscript: 0.0₁₀318 = 0.0000000000318. */
+function tiny(v: number) {
+  const zeros = -Math.floor(Math.log10(Math.abs(v))) - 1;
+  const digits = Math.round(Math.abs(v) * 10 ** (zeros + 4)).toString().replace(/0+$/, "") || "0";
+  return `${v < 0 ? "-" : ""}0.0${String(zeros).split("").map((d) => SUB[Number(d)]).join("")}${digits}`;
+}
+
+/** A native amount for people: 4.2, 0.0125, 0.00004, 0.0₁₀318. */
 export function nat(v: number | null | undefined, digits = 4) {
   if (v == null || !isFinite(v)) return "—";
   if (v === 0) return "0";
+  if (Math.abs(v) < 1e-6) return tiny(v);
   if (Math.abs(v) >= 1000) return v.toLocaleString("en-US", { maximumFractionDigits: 1 });
   if (Math.abs(v) >= 1) return v.toLocaleString("en-US", { maximumFractionDigits: 3 });
   const p = Math.max(digits, -Math.floor(Math.log10(Math.abs(v))) + 2);
