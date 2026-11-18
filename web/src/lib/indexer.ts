@@ -99,6 +99,23 @@ async function syncRange(): Promise<number> {
   const ordered = [...marketLogs, ...transferLogs, ...hubLogs].sort((a, b) =>
     a.blockNumber === b.blockNumber ? (a.logIndex ?? 0) - (b.logIndex ?? 0) : Number((a.blockNumber ?? 0n) - (b.blockNumber ?? 0n)),
   );
+  // Each coin's graduation amount (native raised at graduation), read once from its market.
+  const setGraduation = db.prepare("UPDATE coins SET graduation = ? WHERE address = ?");
+  const missing = db.prepare("SELECT address, market FROM coins WHERE graduation IS NULL").all() as { address: string; market: string }[];
+  const fresh = hubLogs.filter((l) => l.eventName === "Launched").map((l) => ({ address: lower((l.args as { coin: Address }).coin), market: lower((l.args as { market: Address }).market) }));
+  const graduationOf = new Map<string, number>();
+  for (const c of [...missing, ...fresh]) {
+    if (graduationOf.has(c.address)) continue;
+    // The curve's product vN * vT stays put; at launch vT was 4/3 of the coins on the curve and
+    // graduation is 3x the starting vN, so graduation = 9 * vN * vT / (4 * curveSupply).
+    const [vN, vT, curve] = (await Promise.all([
+      client.readContract({ address: c.market as Address, abi: marketAbi, functionName: "virtualNative" }),
+      client.readContract({ address: c.market as Address, abi: marketAbi, functionName: "virtualToken" }),
+      client.readContract({ address: c.market as Address, abi: marketAbi, functionName: "curveSupply" }),
+    ])) as bigint[];
+    graduationOf.set(c.address, num((9n * vN * vT) / (4n * curve)));
+  }
+
   // Coins whose live state (progress, jackpot) changed in this range.
   const touched = new Set<string>();
   for (const l of ordered) {
@@ -183,6 +200,7 @@ async function syncRange(): Promise<number> {
         touched.add(lower((l.args as { coin: Address }).coin));
       }
     }
+    for (const [coin, g] of graduationOf) setGraduation.run(g, coin);
     for (const [coin, v] of live) {
       setRaised.run(v.raised, v.graduated ? 1 : 0, coin);
       setJackpot.run(coin, v.round, v.pot, v.deadline, v.lastBuyer);

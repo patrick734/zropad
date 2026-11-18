@@ -14,10 +14,12 @@ import { CoinCard } from "@/components/coin-card";
 import { CoinImage } from "@/components/coin-image";
 import { Empty } from "@/components/column";
 import { Button } from "@/components/ui/button";
+import { useMoney } from "@/components/money";
 
 export default function Me() {
   const { address, isConnected, chainId } = useAccount();
   const { data } = useWallet(address?.toLowerCase());
+  const m = useMoney();
   const pc = usePublicClient({ chainId: chain.id });
   const { writeContractAsync } = useWriteContract();
   const [busy, setBusy] = useState(false);
@@ -68,7 +70,7 @@ export default function Me() {
       </div>
 
       <section className="space-y-2">
-        <h2 className="text-[13px] font-semibold">Holdings <span className="num font-normal text-muted-foreground">≈ {natSym(value, 3)}</span></h2>
+        <h2 className="text-[13px] font-semibold">Holdings <span className="num font-normal text-muted-foreground">≈ {m.usd(value)}</span></h2>
         <div className="panel overflow-hidden">
           {(data?.holdings ?? []).map((h) => (
             <Link key={h.coin} href={`/coin/${h.coin}`} className="flex items-center gap-3 border-b border-border/60 px-3 py-2.5 last:border-0 hover:bg-secondary/40">
@@ -79,7 +81,7 @@ export default function Me() {
               </div>
               <div className="text-right">
                 <p className="num text-[13px]">{compact(h.amount)}</p>
-                <p className="num text-[11px] text-muted-foreground">{natSym(h.value, 3)}</p>
+                <p className="num text-[11px] text-muted-foreground">{m.usd(h.value)}</p>
               </div>
             </Link>
           ))}

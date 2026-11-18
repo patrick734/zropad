@@ -17,6 +17,7 @@ import { Chart } from "@/components/chart";
 import { CurveProgress } from "@/components/progress";
 import { TradePanel } from "@/components/trade-panel";
 import { JackpotCard } from "@/components/jackpot-card";
+import { useMoney } from "@/components/money";
 
 const INTERVALS: [string, number][] = [["1m", 60], ["5m", 300], ["15m", 900], ["1h", 3600], ["4h", 14400], ["1d", 86400]];
 
@@ -28,6 +29,7 @@ export default function CoinPage({ params }: { params: Promise<{ address: string
   const { data, isLoading } = useCoin(address.toLowerCase(), interval);
   const kingAddr = useFeed().data?.king?.address;
   const { address: me } = useAccount();
+  const m = useMoney();
   const [copied, setCopied] = useState(false);
   const { data: config } = useReadContract({ address: ZROPAD, abi: hubAbi, functionName: "config", chainId: chain.id, query: { enabled: !!ZROPAD, staleTime: 60_000 } });
   const minBuy = config ? nat(Number(formatEther(config[10] as bigint))) : "0.005";
@@ -83,17 +85,17 @@ export default function CoinPage({ params }: { params: Promise<{ address: string
           <div className="panel flex flex-wrap items-end gap-x-8 gap-y-3 p-4">
             <div>
               <p className="text-xs text-muted-foreground">Market cap</p>
-              <p className="num text-3xl font-semibold">{natSym(coin.mcap, 3)}</p>
+              <p className="num text-3xl font-semibold">{m.usd(coin.mcap, false)}</p>
               <Change value={coin.change24h} className="text-xs" /> <span className="text-xs text-muted-foreground">24h</span>
             </div>
             <div className="min-w-48 flex-1">
               <div className="flex justify-between text-[11px] text-muted-foreground">
                 <span>{coin.graduated ? "Graduated" : "Bonding curve"}</span>
-                <span className="num">{coin.graduated ? "locked pool" : `${nat(coin.raised, 3)} / ${GRADUATION} ${NATIVE}`}</span>
+                <span className="num">{coin.graduated ? "locked pool" : `${nat(coin.raised, 3)} / ${nat(coin.graduation ?? GRADUATION, 3)} ${NATIVE}`}</span>
               </div>
               <CurveProgress value={coin.progress} graduated={!!coin.graduated} className="mt-1" />
             </div>
-            <Stat label="24h vol" value={natSym(coin.volume24h, 3)} />
+            <Stat label="24h vol" value={m.usd(coin.volume24h)} />
             <Stat label="Holders" value={String(coin.holders)} />
             <Stat label="Creator fee" value={pct(coin.creator_fee_bps)} gold={coin.creator_fee_bps >= 1000} />
           </div>
@@ -105,9 +107,9 @@ export default function CoinPage({ params }: { params: Promise<{ address: string
                   {k}
                 </button>
               ))}
-              <span className="ml-auto pr-1 text-xs text-muted-foreground">market cap ({NATIVE})</span>
+              <span className="ml-auto pr-1 text-xs text-muted-foreground">market cap ({m.price ? "USD" : NATIVE})</span>
             </div>
-            {candles.length ? <Chart candles={candles} /> : <div className="grid h-[380px] place-items-center text-xs text-muted-foreground lg:h-[440px]">No trades yet. Be the first.</div>}
+            {candles.length ? <Chart candles={candles} usd={m.price} /> : <div className="grid h-[380px] place-items-center text-xs text-muted-foreground lg:h-[440px]">No trades yet. Be the first.</div>}
           </div>
 
           <div className="flex gap-1">
@@ -198,7 +200,7 @@ export default function CoinPage({ params }: { params: Promise<{ address: string
                 </div>
                 <CurveProgress value={coin.progress} />
                 <p className="text-xs text-muted-foreground">
-                  Graduates at {GRADUATION} {NATIVE} raised. {nat(coin.raised, 4)} {NATIVE} in the curve so far. Then the coin moves into a pool with its liquidity locked for good.
+                  Graduates at {m.usd((coin.graduation ?? GRADUATION) * 5)} market cap ({nat(coin.graduation ?? GRADUATION, 3)} {NATIVE} raised). {nat(coin.raised, 4)} {NATIVE} in the curve so far. Then the coin moves into a pool with its liquidity locked for good.
                 </p>
                 {king && <p className="flex items-center gap-1 text-xs font-medium text-gold"><Crown className="size-3.5" /> King of the hill</p>}
               </>

@@ -30,3 +30,7 @@ export const useTraders = (w: string, limit = 50) =>
   useQuery({ queryKey: ["traders", w, limit], queryFn: () => get<{ traders: Trader[] }>(`/api/leaderboard?w=${w}&limit=${limit}`), refetchInterval: 20_000 });
 export const useEarners = (w: string, limit = 50) =>
   useQuery({ queryKey: ["earners", w, limit], queryFn: () => get<{ earners: Earner[] }>(`/api/leaderboard?tab=earners&w=${w}&limit=${limit}`), refetchInterval: 20_000 });
+
+/** The native coin's USD price (null when unknown). */
+export const useNativeUsd = () =>
+  useQuery({ queryKey: ["price"], queryFn: () => get<{ usd: number | null }>("/api/price").then((r) => r.usd), refetchInterval: 60_000, staleTime: 30_000 }).data ?? null;

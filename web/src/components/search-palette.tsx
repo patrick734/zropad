@@ -6,10 +6,12 @@ import { Search } from "lucide-react";
 import type { Coin } from "@/lib/api";
 import { natSym, short } from "@/lib/format";
 import { CoinImage } from "./coin-image";
+import { useMoney } from "./money";
 
 /** ⌘K: search coins by name, ticker or contract address. */
 export function SearchPalette({ onClose }: { onClose: () => void }) {
   const router = useRouter();
+  const m = useMoney();
   const [q, setQ] = useState("");
   const [coins, setCoins] = useState<Coin[]>([]);
   const [sel, setSel] = useState(0);
@@ -60,7 +62,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                 <p className="truncate font-medium">{c.name}</p>
                 <p className="text-xs text-muted-foreground">${c.symbol} · {short(c.address)}</p>
               </div>
-              <span className="num text-xs">{natSym(c.mcap, 2)}</span>
+              <span className="num text-xs">{m.usd(c.mcap)}</span>
             </button>
           ))}
           {q.trim() && !coins.length && <p className="px-2 py-6 text-center text-xs text-muted-foreground">Nothing found.</p>}

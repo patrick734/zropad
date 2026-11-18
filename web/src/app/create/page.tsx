@@ -14,6 +14,7 @@ import { ConnectButton } from "@/components/connect";
 import { CoinImage } from "@/components/coin-image";
 import { CurveProgress } from "@/components/progress";
 import { Button } from "@/components/ui/button";
+import { useMoney } from "@/components/money";
 
 const MAX_FEE = 5000;
 const LINKS = [
@@ -25,6 +26,7 @@ const LINKS = [
 export default function Create() {
   const router = useRouter();
   const { isConnected, chainId } = useAccount();
+  const m = useMoney();
   const pc = usePublicClient({ chainId: chain.id });
   const { writeContractAsync } = useWriteContract();
   const { data: config } = useReadContract({ address: ZROPAD, abi: hubAbi, functionName: "config", chainId: chain.id, query: { enabled: !!ZROPAD } });
@@ -50,6 +52,8 @@ export default function Create() {
   }, [image]);
 
   const launchFee = config ? (config[0] as bigint) : 0n;
+  /** Native raised at graduation for coins launched now (virtualNative x 3). */
+  const grad = config ? Number(formatEther(config[1] as bigint)) * 3 : GRADUATION;
   const buyWei = useMemo(() => {
     try {
       return firstBuy ? parseEther(firstBuy) : 0n;
@@ -115,11 +119,11 @@ export default function Create() {
   return (
     <div className="mx-auto max-w-5xl">
       <h1 className="text-2xl font-semibold">Create a coin</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Fair launch on a bonding curve. When it raises {GRADUATION} {NATIVE} it graduates into a pool with the liquidity locked for good.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Fair launch on a bonding curve. When it raises {nat(grad, 3)} {NATIVE} it graduates into a pool with the liquidity locked for good.</p>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
         {([
-          [TrendingUp, "Bonding curve", `Everyone buys on the same curve from the first second. Graduates at ${GRADUATION} ${NATIVE}.`],
+          [TrendingUp, "Bonding curve", `Everyone buys on the same curve from the first second. Graduates at ${nat(grad, 3)} ${NATIVE}.`],
           [ShieldCheck, "Sniper tax", "Buys in the first 2 seconds pay 99%, straight into the jackpot. Your first buy is exempt."],
           [Timer, "Countdown jackpot", "Every coin gets a pot. The last buyer when the clock hits zero wins it."],
         ] as const).map(([Icon, t, d]) => (
@@ -254,7 +258,8 @@ export default function Create() {
             <Row k="launch fee" v={config ? `${nat(Number(formatEther(launchFee)))} ${NATIVE}` : "…"} />
             <Row k="trade fee" v={`1% + your ${(feeBps / 100).toFixed(2)}%`} />
             <Row k="supply" v="1,000,000,000" />
-            <Row k="graduates at" v={`${GRADUATION} ${NATIVE}`} />
+            <Row k="starts at" v={m.usd(grad * 0.3125)} />
+            <Row k="graduates at" v={m.price ? m.usd(grad * 5) : `${nat(grad, 3)} ${NATIVE}`} />
             <Row k="liquidity" v="locked forever" />
             <Row k="sniper tax" v="99% for 2 seconds" />
             <Row k="jackpot" v="starts at 1 hour" />

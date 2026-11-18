@@ -5,7 +5,7 @@ import { GRADUATION, SUPPLY } from "./config";
 
 export type Coin = {
   address: string; market: string; creator: string; id: number; name: string; symbol: string; uri: string;
-  creator_fee_bps: number; created_at: number; created_tx: string; graduated: number; graduated_at: number | null;
+  creator_fee_bps: number; created_at: number; created_tx: string; graduated: number; graduated_at: number | null; graduation: number | null;
   price: number; mcap: number; raised: number; volume: number; trades: number; last_trade_at: number | null;
   image: string | null; description: string | null; website: string | null; twitter: string | null; telegram: string | null;
   progress: number; volume24h: number; change24h: number | null; holders: number;
@@ -16,7 +16,7 @@ export type Coin = {
 
 const COIN_SELECT = `
   SELECT c.*,
-    CASE WHEN c.graduated = 1 THEN 1.0 ELSE MIN(1.0, c.raised / ${GRADUATION}) END AS progress,
+    CASE WHEN c.graduated = 1 THEN 1.0 ELSE MIN(1.0, c.raised / COALESCE(c.graduation, ${GRADUATION})) END AS progress,
     COALESCE((SELECT SUM(native) FROM trades t WHERE t.coin = c.address AND t.time > @since), 0) AS volume24h,
     COALESCE((SELECT price FROM trades t WHERE t.coin = c.address AND t.time <= @since ORDER BY time DESC, log_index DESC LIMIT 1),
       (SELECT price FROM trades t WHERE t.coin = c.address ORDER BY time, log_index LIMIT 1)) AS price_then,

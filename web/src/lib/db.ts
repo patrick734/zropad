@@ -37,6 +37,9 @@ export function getDb() {
     CREATE TABLE IF NOT EXISTS graduations (coin TEXT PRIMARY KEY, tx TEXT NOT NULL, time INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS meta (id TEXT PRIMARY KEY, json TEXT NOT NULL, image BLOB, mime TEXT, created_at INTEGER NOT NULL);
   `);
+  // Added later: each coin's own graduation amount (its curve is fixed at launch).
+  const cols = db.prepare("PRAGMA table_info(coins)").all() as { name: string }[];
+  if (!cols.some((c) => c.name === "graduation")) db.exec("ALTER TABLE coins ADD COLUMN graduation REAL");
   return db;
 }
 

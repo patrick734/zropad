@@ -6,11 +6,10 @@ import type { Coin } from "@/lib/api";
 import { ago, nat, natSym, pct } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { CoinImage } from "./coin-image";
+import { useMoney } from "./money";
 import { Change } from "./change";
 import { Countdown } from "./countdown";
 
-/** Price of one whole coin, in the native coin. */
-export const unitPrice = (p: number) => natSym(p, 4);
 
 /** Little marks next to a name: graduated, king of the hill. */
 export function Badges({ c, king }: { c: Coin; king?: boolean }) {
@@ -36,6 +35,7 @@ export function Thumb({ c, size = "size-10" }: { c: Coin; size?: string }) {
 
 /** Trending: picture, name, price; market cap and change over the window on the right. */
 export function TrendingRow({ c, hot, king, flash }: { c: Coin; hot?: boolean; king?: boolean; flash?: "up" | "down" }) {
+  const m = useMoney();
   return (
     <Link href={`/coin/${c.address}`} className={cn("flex items-center gap-2.5 border-b border-border/60 px-3 py-2 hover:bg-secondary/60", flash === "up" && "flash", flash === "down" && "flash-down")}>
       <Thumb c={c} />
@@ -45,10 +45,10 @@ export function TrendingRow({ c, hot, king, flash }: { c: Coin; hot?: boolean; k
           <Badges c={c} king={king} />
           {hot && <span className="chip bg-down/15 text-down">HOT</span>}
         </p>
-        <p className="num truncate text-[11px] text-muted-foreground">{unitPrice(c.price)}</p>
+        <p className="num truncate text-[11px] text-muted-foreground">{m.usd(c.price)}</p>
       </div>
       <div className="text-right">
-        <p className="num text-[13px] font-semibold">{natSym(c.mcap, 2)}</p>
+        <p className="num text-[13px] font-semibold">{m.usd(c.mcap)}</p>
         <Change value={c.change_window} className="text-[11px]" />
       </div>
     </Link>
@@ -57,6 +57,7 @@ export function TrendingRow({ c, hot, king, flash }: { c: Coin; hot?: boolean; k
 
 /** Dense screener row: age, holders, trades, fee, top-10 and dev shares, volume and market cap. */
 export function ScreenerRow({ c, king }: { c: Coin; king?: boolean }) {
+  const m = useMoney();
   return (
     <Link href={`/coin/${c.address}`} className="flex gap-2.5 border-b border-border/60 px-3 py-2.5 hover:bg-secondary/40">
       <Thumb c={c} size="size-12" />
@@ -79,8 +80,8 @@ export function ScreenerRow({ c, king }: { c: Coin; king?: boolean }) {
         </div>
       </div>
       <div className="num shrink-0 text-right text-[11px] leading-tight">
-        <p><span className="text-muted-foreground">MC </span><span className="font-semibold">{nat(c.mcap, 3)}</span></p>
-        <p><span className="text-muted-foreground">V </span>{nat(c.volume24h, 3)}</p>
+        <p><span className="text-muted-foreground">MC </span><span className="font-semibold">{m.usd(c.mcap)}</span></p>
+        <p><span className="text-muted-foreground">V </span>{m.usd(c.volume24h)}</p>
         {(c.jackpot_pot ?? 0) > 0 && (c.jackpot_deadline ?? 0) > Date.now() / 1000 ? (
           <p className="mt-1 inline-flex items-center gap-0.5 text-gold"><Timer className="size-3" /><Countdown to={c.jackpot_deadline ?? 0} /></p>
         ) : null}

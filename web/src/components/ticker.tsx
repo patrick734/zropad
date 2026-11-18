@@ -6,6 +6,7 @@ import { compact, nat, pnl, short } from "@/lib/format";
 import { NATIVE } from "@/lib/config";
 import { Avatar } from "./avatar";
 import { CoinImage } from "./coin-image";
+import { useMoney } from "./money";
 
 function Trade({ f }: { f: FeedItem }) {
   const kind = f.kind === "trade" ? (f.is_buy ? "buy" : "sell") : f.kind === "launch" ? "new" : f.kind === "graduated" ? "graduated" : "jackpot";
@@ -25,6 +26,7 @@ function Trade({ f }: { f: FeedItem }) {
 /** The strip under the top bar: today's best traders and their profit, or the latest trades before anyone's up. */
 export function Ticker() {
   const traders = useTraders("1d", 30).data?.traders;
+  const m = useMoney();
   const winners = (traders ?? []).filter((t) => t.pnl > 0);
   const feed = useFeed().data?.feed ?? [];
 
@@ -33,7 +35,7 @@ export function Ticker() {
         <Link key={t.wallet} href="/leaderboard" className="inline-flex shrink-0 items-center gap-1.5 px-3 text-xs hover:text-foreground">
           <Avatar seed={t.wallet} className="size-4" />
           <span className="text-muted-foreground">@{short(t.wallet)}</span>
-          <span className="num font-medium text-up">{pnl(t.pnl)}</span>
+          <span className="num font-medium text-up">{m.pnl(t.pnl)}</span>
         </Link>
       ))
     : feed.map((f, i) => <Trade key={i} f={f} />);

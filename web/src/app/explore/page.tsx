@@ -11,6 +11,7 @@ import { Badges, Thumb } from "@/components/coin-rows";
 import { Change } from "@/components/change";
 import { Countdown } from "@/components/countdown";
 import { Empty, Rows } from "@/components/column";
+import { useMoney } from "@/components/money";
 
 const TABS = [
   { id: "movers", label: "Movers", icon: TrendingUp },
@@ -32,6 +33,7 @@ export default function Explore() {
   const [query, setQuery] = useState("");
   const { data } = useCoins(tab, query, 24, 100);
   const king = useFeed().data?.king?.address;
+  const m = useMoney();
 
   useEffect(() => {
     try {
@@ -110,9 +112,9 @@ export default function Explore() {
                       </span>
                     </Link>
                   </td>
-                  <td className="num px-3 py-2 text-right font-semibold">{natSym(c.mcap, 2)}</td>
+                  <td className="num px-3 py-2 text-right font-semibold">{m.usd(c.mcap)}</td>
                   <td className="px-3 py-2 text-right"><Change value={c.change24h} /></td>
-                  <td className="num px-3 py-2 text-right">{nat(c.volume24h, 3)}</td>
+                  <td className="num px-3 py-2 text-right">{m.usd(c.volume24h)}</td>
                   <td className="num px-3 py-2 text-right">{c.holders}</td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">

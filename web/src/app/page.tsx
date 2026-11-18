@@ -13,6 +13,7 @@ import { ScreenerRow, Thumb, TrendingRow } from "@/components/coin-rows";
 import { Avatar } from "@/components/avatar";
 import { CoinImage } from "@/components/coin-image";
 import { CurveProgress } from "@/components/progress";
+import { useMoney } from "@/components/money";
 import { Countdown } from "@/components/countdown";
 
 const PANES = [
@@ -106,6 +107,7 @@ function JackpotPane({ className }: { className: string }) {
 }
 
 function KingCard({ c }: { c: Coin | null }) {
+  const m = useMoney();
   if (!c)
     return (
       <div className="m-2 rounded-lg border border-dashed border-input p-4 text-center text-xs text-muted-foreground">
@@ -120,7 +122,7 @@ function KingCard({ c }: { c: Coin | null }) {
         <CoinImage src={c.image} symbol={c.symbol} address={c.address} className="size-12" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13px] font-semibold">{c.name} <span className="font-normal text-muted-foreground">${c.symbol}</span></p>
-          <p className="num text-[11px] text-muted-foreground">MC <span className="text-foreground">{natSym(c.mcap, 2)}</span> · fee {pct(c.creator_fee_bps)}</p>
+          <p className="num text-[11px] text-muted-foreground">MC <span className="text-foreground">{m.usd(c.mcap)}</span> · fee {pct(c.creator_fee_bps)}</p>
         </div>
       </div>
       <CurveProgress value={c.progress} className="mt-2.5 h-1.5" />
@@ -152,6 +154,7 @@ function LeaderPane({ className }: { className: string }) {
   const [w, setW] = useState<(typeof WINDOWS)[number][0]>("1d");
   const { data } = useTraders(w, 30);
   const me = useAccount().address?.toLowerCase();
+  const m = useMoney();
   return (
     <Column className={className} title="Leaderboard" icon={<Trophy className="size-4 text-gold" />} actions={<Link href="/leaderboard" className="text-[11px] text-muted-foreground hover:text-foreground">All</Link>} tabs={<Tabs value={w} options={WINDOWS} onChange={setW} className="ml-auto" />}>
       {!data ? (
@@ -162,7 +165,7 @@ function LeaderPane({ className }: { className: string }) {
             <span className={cn("num w-5 text-right text-xs", i < 3 ? "text-gold" : "text-muted-foreground")}>{i + 1}</span>
             <Avatar seed={t.wallet} className="size-7" />
             <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{t.wallet === me ? "you" : short(t.wallet)}</span>
-            <span className={cn("num text-[13px] font-semibold", t.pnl >= 0 ? "text-up" : "text-down")}>{pnl(t.pnl)}</span>
+            <span className={cn("num text-[13px] font-semibold", t.pnl >= 0 ? "text-up" : "text-down")}>{m.pnl(t.pnl)}</span>
           </Link>
         ))
       ) : (

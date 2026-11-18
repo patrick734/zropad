@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Timer } from "lucide-react";
 import type { Coin } from "@/lib/api";
@@ -7,9 +9,11 @@ import { CoinImage } from "./coin-image";
 import { CurveProgress } from "./progress";
 import { Change } from "./change";
 import { Countdown } from "./countdown";
+import { useMoney } from "./money";
 
 /** A coin as a card: picture, name, market cap, curve progress and its jackpot. */
 export function CoinCard({ coin: c, king }: { coin: Coin; king?: boolean }) {
+  const m = useMoney();
   return (
     <Link href={`/coin/${c.address}`} className="panel flex gap-3 p-3 transition-colors hover:border-input hover:bg-accent/40">
       <CoinImage src={c.image} symbol={c.symbol} address={c.address} className="size-20 rounded-lg" />
@@ -24,7 +28,7 @@ export function CoinCard({ coin: c, king }: { coin: Coin; king?: boolean }) {
         </p>
         <p className="num mt-1 text-[13px]">
           <span className="text-muted-foreground">MC </span>
-          <span className="font-semibold">{natSym(c.mcap, 2)}</span> <Change value={c.change24h} className="text-[11px]" />
+          <span className="font-semibold">{m.usd(c.mcap)}</span> <Change value={c.change24h} className="text-[11px]" />
         </p>
         <CurveProgress value={c.progress} graduated={!!c.graduated} className="mt-1.5 h-1.5" />
         {(c.jackpot_pot ?? 0) > 0 && (c.jackpot_deadline ?? 0) > Date.now() / 1000 ? (

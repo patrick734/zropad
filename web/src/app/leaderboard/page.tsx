@@ -10,6 +10,7 @@ import { natSym, pnl, short } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/avatar";
 import { Empty, Rows, Tabs } from "@/components/column";
+import { useMoney } from "@/components/money";
 
 const WINDOWS = [["1d", "1D"], ["1w", "1W"], ["1m", "1M"]] as const;
 type W = (typeof WINDOWS)[number][0];
@@ -22,12 +23,13 @@ export default function Leaderboard() {
   const traders = useTraders(w, 100);
   const earners = useEarners(w, 100);
   const points = usePoints();
+  const m = useMoney();
 
   const people: Person[] | undefined =
     tab === "traders"
       ? traders.data?.traders.map((t) => ({ wallet: t.wallet, value: t.pnl, sub: `${t.coins} ${t.coins === 1 ? "coin" : "coins"} · ${natSym(t.volume, 2)} traded` }))
       : earners.data?.earners.map((e) => ({ wallet: e.wallet, value: e.earned, sub: `${e.coins} ${e.coins === 1 ? "coin" : "coins"}` }));
-  const fmt = (v: number) => (tab === "traders" ? pnl(v) : natSym(v, 4));
+  const fmt = (v: number) => (tab === "traders" ? m.pnl(v) : m.usd(v, false));
 
   return (
     <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_340px]">

@@ -46,3 +46,18 @@ export const pct = (bps: number) => `${(bps / 100).toFixed(bps % 100 ? 2 : 0)}%`
 
 /** A signed profit: +0.12 ETH / -0.03 ETH. */
 export const pnl = (v: number) => `${v >= 0 ? "+" : "-"}${nat(Math.abs(v), 3)} ${NATIVE}`;
+
+/** A native amount in dollars: $4.2K, $812.50, $0.0₆42. Falls back to the native coin with no price. */
+export function usd(v: number | null | undefined, price: number | null, opts: { compact?: boolean } = {}) {
+  if (v == null || !isFinite(v)) return "—";
+  if (price == null) return natSym(v, 3);
+  const x = v * price;
+  const a = Math.abs(x);
+  const sign = x < 0 ? "-" : "";
+  if (opts.compact !== false && a >= 1000) return `${sign}$${compact(a)}`;
+  if (a >= 1) return `${sign}$${a.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `${sign}$${nat(a, 4)}`;
+}
+
+/** A signed dollar profit: +$1,234.56. */
+export const usdPnl = (v: number, price: number | null) => (price == null ? pnl(v) : `${v >= 0 ? "+" : "-"}${usd(Math.abs(v), price, { compact: false })}`);

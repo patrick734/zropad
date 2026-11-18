@@ -9,8 +9,8 @@ type Candle = { time: number; open: number; high: number; low: number; close: nu
 const UP = "#7ef29d";
 const DOWN = "#f07a63";
 
-/** Market-cap candles (price x 1B supply) in the native coin, with volume bars under them. */
-export function Chart({ candles }: { candles: Candle[] }) {
+/** Market-cap candles (price x 1B supply), in dollars when the native price is known, with volume bars under them. */
+export function Chart({ candles, usd }: { candles: Candle[]; usd?: number | null }) {
   const el = useRef<HTMLDivElement>(null);
   const chart = useRef<IChartApi | null>(null);
   const series = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -42,9 +42,11 @@ export function Chart({ candles }: { candles: Candle[] }) {
 
   useEffect(() => {
     if (!series.current || !volume.current) return;
-    series.current.setData(candles.map((k) => ({ time: k.time as UTCTimestamp, open: k.open * SUPPLY, high: k.high * SUPPLY, low: k.low * SUPPLY, close: k.close * SUPPLY })));
-    volume.current.setData(candles.map((k) => ({ time: k.time as UTCTimestamp, value: k.volume, color: k.close >= k.open ? `${UP}55` : `${DOWN}55` })));
-  }, [candles]);
+    const f = SUPPLY * (usd ?? 1);
+    series.current.applyOptions({ priceFormat: usd ? { type: "price", precision: 0, minMove: 1 } : { type: "price", precision: 4, minMove: 0.0001 } });
+    series.current.setData(candles.map((k) => ({ time: k.time as UTCTimestamp, open: k.open * f, high: k.high * f, low: k.low * f, close: k.close * f })));
+    volume.current.setData(candles.map((k) => ({ time: k.time as UTCTimestamp, value: k.volume * (usd ?? 1), color: k.close >= k.open ? `${UP}55` : `${DOWN}55` })));
+  }, [candles, usd]);
 
   return <div ref={el} className="h-[380px] w-full lg:h-[440px]" />;
 }
